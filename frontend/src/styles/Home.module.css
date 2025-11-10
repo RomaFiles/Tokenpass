@@ -211,7 +211,7 @@
 }
 
 .ArenaGuadalajaraCard {
-    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Arena_Guadalajara2.jpg');
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Arena_Guadalajara2.png');
     --overlay-base: 0;
     --overlay-hover: 1;
     color: #fff;
@@ -220,7 +220,7 @@
 }
 
 .PalacioBellasArtesCard {
-    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Bellas_Artes2.jpg');
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Bellas_Artes2.png');
     --overlay-base: 0;
     --overlay-hover: 1;
     color: #fff;
