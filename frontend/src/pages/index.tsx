@@ -29,49 +29,40 @@ const Home: NextPage = () => {
             <p>El espacio del arte y aparador de talento para el país y el mundo</p>
           </Link>
 
-          <a className={`${styles.card} ${styles.cardBg} ${styles.BenitoJuarezCard}`} href="https://wagmi.sh">
-            <h2>Auditorio Benito Juarez &rarr;</h2>
-            <p>Espacio cultural dedicado a eventos teatrales y artísticos.</p>
-          </a>
+          <Link href="/ArenaMonterrey" className={`${styles.card} ${styles.cardBg} ${styles.ArenaMonterrey}`}>
+            <h2>Arena Monterrey &rarr;</h2>
+            <p>Lujo y tecnología: la quinta arena más activa del mundo.</p>
+          </Link>
 
-          <a
-            className={`${styles.card} ${styles.cardBg} ${styles.WorldTradeCenterCard}`}
-            href="https://github.com/rainbow-me/rainbowkit/tree/main/examples"
-          >
-            <h2>World Trade Center Veracruz &rarr;</h2>
-            <p>Moderno centro de negocios y exposiciones.</p>
-          </a>
+          <Link href="/ArenaGuadalajara" className={`${styles.card} ${styles.cardBg} ${styles.ArenaGuadalajaraCard}`}>
+            <h2>Arena Guadalajara &rarr;</h2>
+            <p>Recinto con acústica superior, el futuro del entretenimiento tapatío.</p>
+          </Link>
 
-          <a className={`${styles.card} ${styles.cardBg} ${styles.PalacioBellasArtesCard}`} href="https://nextjs.org/docs">
+          <Link href="/PalacioBellasArtes" className={`${styles.card} ${styles.cardBg} ${styles.PalacioBellasArtesCard}`}>
             <h2>Palacio de Bellas Artes &rarr;</h2>
-            <p>Sueño porfiriano, concluido en Revolución, epicentro artístico de México.</p>
-          </a>
+            <p>Sueño porfiriano, concluido en Revolución, centro artístico de México.</p>
+          </Link>
 
-          <a
-            className={`${styles.card} ${styles.cardBg} ${styles.AuditorioNacionalCard}`}
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-          >
+          <Link href="/AuditorioNacional" className={`${styles.card} ${styles.cardBg} ${styles.AuditorioNacionalCard}`}>
             <h2>Auditorio Nacional &rarr;</h2>
             <p>Recinto mundial de espectáculos, audio e imagen vanguardista.</p>
-          </a>
+          </Link>
 
-          <a
-            className={`${styles.card} ${styles.cardBg} ${styles.ArenaCiudadDeMexicoCard}`}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          >
+          <Link href="/ArenaCDMX" className={`${styles.card} ${styles.cardBg} ${styles.ArenaCiudadDeMexicoCard}`}>
             <h2>Arena Ciudad de México &rarr;</h2>
-            <p>El mejor centro de entretenimiento latinoamericano, con tecnología de punta 360.</p>
-          </a>
+            <p>El mejor centro de entretenimiento latinoamericano.</p>
+          </Link>
 
-          <a className={`${styles.card} ${styles.cardBg} ${styles.AutodromoHRCard}`} href="https://nextjs.org/docs">
+          <Link href="/AutodromoHR" className={`${styles.card} ${styles.cardBg} ${styles.AutodromoHRCard}`}>
             <h2>Autódromo Hermanos Rodríguez &rarr;</h2>
             <p>Automovilismo, festivales musicales y Fórmula 1: adrenalina pura.</p>
-          </a>
+          </Link>
 
-          <a className={`${styles.card} ${styles.cardBg} ${styles.AuditorioBanamexCard}`} href="https://nextjs.org/docs">
+          <Link href="/AuditorioBanamex" className={`${styles.card} ${styles.cardBg} ${styles.AuditorioBanamexCard}`}>
             <h2>Auditorio Banamex &rarr;</h2>
             <p>El escenario vibrante que define el entretenimiento regional del norte.</p>
-          </a>
+          </Link>
         </div>
       </main>
 

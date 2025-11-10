@@ -19,6 +19,10 @@
     border-top: 1px solid #eaeaea;
     justify-content: center;
     align-items: center;
+    /* Pendiente de revisar si dejar o eliminar */
+    background: #0d76fc;
+    color: #eaeaea;
+    font-weight: bolder;
 }
 
 .footer a {
@@ -149,48 +153,115 @@
     will-change: font-variation-settings, transform;
 }
 
-.ForoBocaCard {
+/* Estilos generales para cualquier card con imagen de fondo */
+.cardBg {
     position: relative;
-    color: #fff;
-    border: none;
-    background-image: 
-        linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%),
-        url('/models/Foro_Boca_Card2.jpg');
+    overflow: hidden;
+    background-image: var(--card-bg, none);
     background-size: cover, 100% auto;
     background-position: center, top;
     background-repeat: no-repeat, no-repeat;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-    overflow: hidden;
 }
 
-/* Overlay extra de degradado que se intensifica suavemente en hover */
-.ForoBocaCard::before {
+.cardBg::before {
     content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(to bottom, rgba(0,0,0,0) 10%, rgba(0,0,0,0.25) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 0;
+    opacity: var(--overlay-base, 0);
+    transition: opacity 0.3s ease, background 0.3s ease;
     pointer-events: none;
+    z-index: 0;
 }
 
-.ForoBocaCard > * {
-    position: relative;
-    z-index: 1;
-}
-
-.ForoBocaCard:hover::before,
-.ForoBocaCard:focus::before,
-.ForoBocaCard:active::before {
-    opacity: 1;
-    /* Sube el fade y lo hace más intenso hacia arriba para mejorar contraste */
+.cardBg:hover::before,
+.cardBg:focus::before,
+.cardBg:active::before {
+    opacity: var(--overlay-hover, 1);
     background: linear-gradient(
         to bottom,
         rgba(0,0,0,0) 5%,
         rgba(0,0,0,0.35) 65%,
         rgba(0,0,0,0.55) 100%
     );
+}
+
+.cardBg > * {
+    position: relative;
+    z-index: 1;
+}
+
+.ForoBocaCard {
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Foro_Boca_Card3.jpg');
+    --overlay-base: 0;
+    --overlay-hover: 1;
+    color: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+/* Imágenes por card */
+.ArenaMonterrey {
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Arena_Monterrey.jpeg');
+    --overlay-base: 0;
+    --overlay-hover: 1;
+    color: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.ArenaGuadalajaraCard {
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Arena_Guadalajara2.jpg');
+    --overlay-base: 0;
+    --overlay-hover: 1;
+    color: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.PalacioBellasArtesCard {
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Bellas_Artes2.jpg');
+    --overlay-base: 0;
+    --overlay-hover: 1;
+    color: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.AuditorioNacionalCard {
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Auditorio_Nacional2.jpg');
+    --overlay-base: 0;
+    --overlay-hover: 1;
+    color: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.ArenaCiudadDeMexicoCard {
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Arena_CDMX2.jpg');
+    --overlay-base: 0;
+    --overlay-hover: 1;
+    color: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.AutodromoHRCard {
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Autodromo_HR2.jpg');
+    --overlay-base: 0;
+    --overlay-hover: 1;
+    color: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.AuditorioBanamexCard {
+    --card-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%), url('/models/Auditorio_Banamex.jpg');
+    --overlay-base: 0;
+    --overlay-hover: 1;
+    color: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
 }
 
 .cardWithBg:hover,
