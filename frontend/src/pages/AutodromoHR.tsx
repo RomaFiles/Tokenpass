@@ -1,20 +1,31 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import styles from "../styles/AutodromoHR.module.css";
 
 const AutodromoHR: NextPage = () => {
   return (
-    <div style={{ padding: 24 }}>
+    <div className={styles.container}>
       <Head>
-        <title>Autodromo Hermanos Rodriguez | Tokenpass</title>
+        <title>Autódromo Hermanos Rodríguez | Tokenpass</title>
       </Head>
 
-      <h1>Autodromo Hermanos Rodriguez</h1>
-      <p>Bienvenido al foro. Aquí podrás ver eventos y contenidos.</p>
+      <header className={styles.header}>
+        <div className={styles.headerOverlay}></div>
+        <div className={styles.headerContent}>
+          <h1 className={styles.title}>AUTÓDROMO</h1>
+          <h2 className={styles.subtitle}>HERMANOS RODRÍGUEZ</h2>
+        </div>
+        <div className={styles.cityLabel}>Ciudad de México, CDMX</div>
+      </header>
 
-      <Link href="/" style={{ display: "inline-block", marginTop: 16 }}>
-        ← Volver al inicio
-      </Link>
+      <div className={styles.content}>
+        <p>Bienvenido al foro. Aquí podrás ver eventos y contenidos.</p>
+
+        <Link href="/" className={styles.backLink}>
+          ← Volver al inicio
+        </Link>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
@@ -13,10 +12,6 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <div className={styles.connectButtonContainer}>
-          <ConnectButton />
-        </div>
-
         <h1 className={styles.title}>
           Bienvenido a <span className={styles.tokenpassTitle}>Tokenpass</span>
         </h1>
