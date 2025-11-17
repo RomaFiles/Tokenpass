@@ -1,29 +1,34 @@
-version: "3.9"
+version: "3.8"
 
 services:
-
   backend:
-    image: node:18
-    working_dir: /app
-    volumes:
-      - ./backend:/app
-    command: bash -c "npm install && npm run dev"
+    build:
+      context: ./contract
+    image: tokenpass_backend:latest
     ports:
-      - "4000:4000"
+      - "4000:4000"   # Backend predeterminado (Express)
     deploy:
+      replicas: 1
       placement:
         constraints:
           - node.hostname == docker1.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
+    networks:
+      - tokenpass_net
 
   frontend:
-    image: node:18
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-    command: bash -c "npm install && npm run dev"
+    build:
+      context: ./frontend
+    image: tokenpass_frontend:latest
     ports:
-      - "3000:3000"
+      - "3000:3000"   # Next.js predeterminado
     deploy:
+      replicas: 1
       placement:
         constraints:
           - node.hostname == docker2.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
+    networks:
+      - tokenpass_net
+
+networks:
+  tokenpass_net:
+    driver: overlay
