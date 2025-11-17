@@ -104,6 +104,7 @@
     justify-content: flex-end;
     min-height: 280px;
     max-width: 375px;
+    width: min(100%, 375px);
 }
 
 .card:hover,
@@ -158,8 +159,9 @@
     position: relative;
     overflow: hidden;
     background-image: var(--card-bg, none);
-    background-size: cover, 100% auto;
-    background-position: center, top;
+    /* Asegura que TODAS las capas (gradiente + imagen) llenen la card */
+    background-size: cover, cover;
+    background-position: center, center;
     background-repeat: no-repeat, no-repeat;
 }
 
@@ -189,6 +191,44 @@
 .cardBg > * {
     position: relative;
     z-index: 1;
+}
+
+/* Estilo genérico para texto claro sobre imágenes */
+.cardLight {
+    color: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.cardLight:hover,
+.cardLight:focus,
+.cardLight:active {
+    color: #0d76fc;
+    border-color: transparent;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+}
+
+/* Aplica altura fija y clamps para uniformar tamaños dentro del grid */
+.uniformGrid .card {
+    height: 280px;
+    overflow: hidden;
+}
+
+.uniformGrid .card h2,
+.uniformGrid .card p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.uniformGrid .card h2 {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+.uniformGrid .card p {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
 }
 
 .ForoBocaCard {
@@ -276,6 +316,13 @@
     .grid {
         width: 100%;
         flex-direction: column;
+    }
+    /* Asegura que las cards ocupen todo el ancho y queden centradas */
+    .card {
+        width: 100%;
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
     }
 }
 

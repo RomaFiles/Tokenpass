@@ -27,59 +27,103 @@ const ForoBoca: NextPage = () => {
         <h1>Eventos próximos</h1>
 
         <div className={homeStyles.grid}>
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Concierto Sinfónico &rarr;</h2>
-            <p>Una noche de música clásica con orquesta completa.</p>
+          <Link
+            href="ForoBocaEvents/MemoriasEnAerosol"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%),url('/models/ForoBocaEvents/MemoriasEnAerosol.png')" }}
+          >
+            <h2>Inauguración de Exposición &rarr;</h2>
+            <p>Memorias en aerosol</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Noche de Jazz &rarr;</h2>
-            <p>Improvisación y ritmo con grandes talentos del jazz.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/DanielSosa.png')" }}
+          >
+            <h2>Daniel Sosa &rarr;</h2>
+            <p>Stand up</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Ópera Gala &rarr;</h2>
-            <p>Voces extraordinarias en arias legendarias.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/JuanGabrielHomenaje.png')" }}
+          >
+            <h2>Temático IV | Juan Gabriel Homenaje al divo &rarr;</h2>
+            <p>Orquesta Filarmónica de Boca del Rio Veracruz Foro Boca</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Ballet Contemporáneo &rarr;</h2>
-            <p>Danza, expresión y movimiento en escena.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/BalletFolkloricoMexico.png')" }}
+          >
+            <h2>Ballet Folklórico de México &rarr;</h2>
+            <p>De Amalia Hernández | Director Gral: Salvador López López</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Recital de Piano &rarr;</h2>
-            <p>Virtuosismo al teclado con repertorio inolvidable.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/ElCascanueces.png')" }}
+          >
+            <h2>Temático V | El Cascanueces &rarr;</h2>
+            <p>Ballet PROVER Orquesta Filarmónica de Boca del Rio Veracruz Foro Boca</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Festival de Cámara &rarr;</h2>
-            <p>Ensamble íntimo con obras maestras.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/Danzon.png')" }}
+          >
+            <h2>Temático VI | Concierto de Danzón &rarr;</h2>
+            <p>Orquesta Filarmónica de Boca del Rio – Veracruz Foro Boca</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Coral y Orquesta &rarr;</h2>
-            <p>Grandes coros en armonía monumental.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/ConciertoArcano.png')" }}
+          >
+            <h2>Concierto Arcano &rarr;</h2>
+            <p>Tour 2025 | Sala Mester</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Noche de Rock &rarr;</h2>
-            <p>Clásicos eléctricos y energía en vivo.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/ConciertoNavideño.png')" }}
+          >
+            <h2>Temático VII | Concierto Navideño &rarr;</h2>
+            <p>Coro de voces blancas – Orquesta Filarmónica de Boca del Rio – Veracruz Foro Boca</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Festival Familiar &rarr;</h2>
-            <p>Actividades y música para todas las edades.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/Einaudi&Zimmer.png')" }}
+          >
+            <h2>Einaudi & Zimmer &rarr;</h2>
+            <p>Vivaldi Solisti Orchestra | Ágora</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Gala Navideña &rarr;</h2>
-            <p>Tradición y villancicos en temporada decembrina.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/Klaus.png')" }}
+          >
+            <h2>Klaus &rarr;</h2>
+            <p>Cinema Foro</p>
           </Link>
 
-          <Link href="#" className={`${homeStyles.card} ${homeStyles.cardBg}`}>
-            <h2>Cine Musical &rarr;</h2>
-            <p>Proyección con orquesta en vivo.</p>
+          <Link
+            href="#"
+            className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
+            style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/LeQuattroStagioni.png')" }}
+          >
+            <h2>Le quattro Stagioni &rarr;</h2>
+            <p>Antonio Vivaldi | Camerata Opus 11</p>
           </Link>
         </div>
 

@@ -12,7 +12,7 @@
   max-height: 350px;
   background-image: url('/models/Autodromo_HR.jpg');
   background-size: cover;
-  background-position: center center;
+  background-position: var(--header-position, center 70%);
   background-repeat: no-repeat;
   display: flex;
   align-items: center;

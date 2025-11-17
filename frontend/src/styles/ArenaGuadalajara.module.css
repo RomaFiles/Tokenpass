@@ -12,7 +12,7 @@
   max-height: 350px;
   background-image: url('/models/Arena_Guadalajara.jpg');
   background-size: cover;
-  background-position: center center;
+  background-position: var(--header-position, center center);
   background-repeat: no-repeat;
   display: flex;
   align-items: center;
