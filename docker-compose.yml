@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   backend:
-    image: tokenpass_backend:latest
+    image: ansible:5000/tokenpass_backend:latest
     ports:
       - "4000:4000"
     deploy:
@@ -13,7 +13,7 @@ services:
       - tokenpass_net
 
   frontend:
-    image: tokenpass_frontend:latest
+    image: ansible:5000/tokenpass_frontend:latest
     ports:
       - "3000:3000"
     deploy:
