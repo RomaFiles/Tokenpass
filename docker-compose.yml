@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+
+  backend:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: bash -c "npm install && npm run dev"
+    ports:
+      - "4000:4000"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == docker1.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
+
+  frontend:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: bash -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == docker2.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
