@@ -3,9 +3,9 @@ version: "3.8"
 services:
 
   traefik:
-    image: traefik:v3.1
+    image: traefik:v2.10
     command:
-      # --- Provider correcto para Docker Swarm ---
+      # --- Docker Swarm provider (v2 compatible) ---
       - "--providers.docker.swarmMode=true"
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedByDefault=false"
@@ -24,7 +24,7 @@ services:
       - "--certificatesresolvers.le.acme.httpChallenge=true"
       - "--certificatesresolvers.le.acme.httpChallenge.entryPoint=web"
 
-      # Dashboard opcional (http://tu-ip:8080)
+      # Dashboard (opcional)
       - "--api.dashboard=true"
       - "--entrypoints.traefik.address=:8080"
 
