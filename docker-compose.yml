@@ -1,27 +1,69 @@
 version: "3.8"
 
 services:
+
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      # Entradas HTTP y HTTPS
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # Redirección de HTTP a HTTPS
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+
+      # Let's Encrypt
+      - "--certificatesresolvers.le.acme.httpChallenge=true"
+      - "--certificatesresolvers.le.acme.httpChallenge.entryPoint=web"
+      - "--certificatesresolvers.le.acme.email=rodrigo.mb89@hotmail.com"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/opt/tokenpass/letsencrypt:/letsencrypt"
+
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
   backend:
     image: ansible:5000/tokenpass_backend:latest
-    ports:
-      - "4000:4000"
+    networks:
+      - tokenpass_net
     deploy:
       placement:
         constraints:
           - node.hostname == docker1.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
-    networks:
-      - tokenpass_net
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.backend.rule=Host(`api.tokenpass.store`)"
+        - "traefik.http.routers.backend.entrypoints=websecure"
+        - "traefik.http.routers.backend.tls.certresolver=le"
+        - "traefik.http.services.backend.loadbalancer.server.port=4000"
 
   frontend:
     image: ansible:5000/tokenpass_frontend:latest
-    ports:
-      - "3000:3000"
+    networks:
+      - tokenpass_net
     deploy:
       placement:
         constraints:
           - node.hostname == docker2.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
-    networks:
-      - tokenpass_net
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.frontend.rule=Host(`tokenpass.store`)"
+        - "traefik.http.routers.frontend.entrypoints=websecure"
+        - "traefik.http.routers.frontend.tls.certresolver=le"
+        - "traefik.http.services.frontend.loadbalancer.server.port=3000"
 
 networks:
   tokenpass_net:
