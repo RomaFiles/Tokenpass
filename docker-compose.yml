@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   traefik:
-    image: traefik:v3.1
+    image: traefik:v2.10.6
     command:
       - "--providers.docker.swarmMode=true"
       - "--providers.docker.exposedbydefault=false"
@@ -12,7 +12,7 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
 
-      # Redirección de HTTP a HTTPS
+      # Redirección HTTP → HTTPS
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
 
@@ -34,6 +34,9 @@ services:
       placement:
         constraints:
           - node.role == manager
+
+    networks:
+      - tokenpass_net
 
   backend:
     image: ansible:5000/tokenpass_backend:latest
@@ -68,3 +71,4 @@ services:
 networks:
   tokenpass_net:
     driver: overlay
+    attachable: true
