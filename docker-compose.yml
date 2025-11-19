@@ -3,28 +3,30 @@ version: "3.8"
 services:
 
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.1
     command:
-      # --- Docker Swarm provider (v2 compatible) ---
-      - "--providers.docker.swarmMode=true"
-      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
-      - "--providers.docker.exposedByDefault=false"
+      # --- SWARM PROVIDER CORRECTO ---
+      - "--providers.swarm=true"
+      - "--providers.swarm.endpoint=unix:///var/run/docker.sock"
 
-      # --- Entrypoints HTTP / HTTPS ---
+      # No usar exposedByDefault en Swarm provider (ya no aplica)
+      - "--providers.swarm.watch=true"
+
+      # Entrypoints
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
 
-      # --- Redirección HTTP → HTTPS ---
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      # Redirect HTTP -> HTTPS
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
 
-      # --- Let's Encrypt ---
+      # Let's Encrypt
       - "--certificatesresolvers.le.acme.email=rodrigo.mb89@hotmail.com"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.le.acme.httpChallenge=true"
-      - "--certificatesresolvers.le.acme.httpChallenge.entryPoint=web"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
 
-      # Dashboard (opcional)
+      # Dashboard
       - "--api.dashboard=true"
       - "--entrypoints.traefik.address=:8080"
 
@@ -49,7 +51,6 @@ services:
 
   backend:
     image: ansible:5000/tokenpass_backend:latest
-
     networks:
       - tokenpass_net
 
@@ -69,7 +70,6 @@ services:
 
   frontend:
     image: ansible:5000/tokenpass_frontend:latest
-
     networks:
       - tokenpass_net
 
