@@ -3,12 +3,13 @@ version: "3.8"
 services:
 
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
 
     command:
-      - "--providers.swarm=true"
-      - "--providers.swarm.watch=true"
-      - "--providers.swarm.exposedByDefault=false"
+      - "--providers.docker=true"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.watch=true"
+      - "--providers.docker.exposedByDefault=false"
 
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
@@ -76,6 +77,7 @@ services:
         - "traefik.http.routers.frontend.entrypoints=websecure"
         - "traefik.http.routers.frontend.tls.certresolver=le"
         - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
 
 networks:
   tokenpass_net:
