@@ -1,92 +1,40 @@
-version: "3.8"
+traefik:
+  image: traefik:v3.1
 
-services:
+  command:
+    # Provider correcto para Swarm (v3 no usa docker.swarmMode)
+    - "--providers.swarm=true"
+    - "--providers.swarm.watch=true"
+    - "--providers.swarm.exposedByDefault=false"
 
-  traefik:
-    image: traefik:v3.1
-    command:
-      # --- SWARM PROVIDER CORRECTO ---
-      - "--providers.swarm=true"
-      - "--providers.swarm.endpoint=unix:///var/run/docker.sock"
+    # Entrypoints HTTP / HTTPS
+    - "--entrypoints.web.address=:80"
+    - "--entrypoints.websecure.address=:443"
 
-      # No usar exposedByDefault en Swarm provider (ya no aplica)
-      - "--providers.swarm.watch=true"
+    # Redirección HTTP → HTTPS
+    - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+    - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
 
-      # Entrypoints
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
+    # Let's Encrypt
+    - "--certificatesresolvers.le.acme.email=rodrigo.mb89@hotmail.com"
+    - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+    - "--certificatesresolvers.le.acme.httpchallenge=true"
+    - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
 
-      # Redirect HTTP -> HTTPS
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    # Dashboard opcional
+    - "--api.dashboard=true"
+    - "--entrypoints.traefik.address=:8080"
 
-      # Let's Encrypt
-      - "--certificatesresolvers.le.acme.email=rodrigo.mb89@hotmail.com"
-      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.le.acme.httpchallenge=true"
-      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+  ports:
+    - "80:80"
+    - "443:443"
+    - "8080:8080"
 
-      # Dashboard
-      - "--api.dashboard=true"
-      - "--entrypoints.traefik.address=:8080"
+  volumes:
+    - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    - "/opt/tokenpass/letsencrypt:/letsencrypt"
 
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "/opt/tokenpass/letsencrypt:/letsencrypt"
-
-    networks:
-      - tokenpass_net
-
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
-
-
-
-  backend:
-    image: ansible:5000/tokenpass_backend:latest
-    networks:
-      - tokenpass_net
-
-    deploy:
-      placement:
-        constraints:
-          - node.hostname == docker1.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
-
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.backend.rule=Host(`api.tokenpass.store`)"
-        - "traefik.http.routers.backend.entrypoints=websecure"
-        - "traefik.http.routers.backend.tls.certresolver=le"
-        - "traefik.http.services.backend.loadbalancer.server.port=4000"
-
-
-
-  frontend:
-    image: ansible:5000/tokenpass_frontend:latest
-    networks:
-      - tokenpass_net
-
-    deploy:
-      placement:
-        constraints:
-          - node.hostname == docker2.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
-
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.frontend.rule=Host(`tokenpass.store`)"
-        - "traefik.http.routers.frontend.entrypoints=websecure"
-        - "traefik.http.routers.frontend.tls.certresolver=le"
-        - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-
-
-networks:
-  tokenpass_net:
-    driver: overlay
-    attachable: true
+  deploy:
+    placement:
+      constraints:
+        - node.role == manager
