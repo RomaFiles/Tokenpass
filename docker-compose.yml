@@ -1,14 +1,12 @@
-version: "3.8"
-
 services:
 
   traefik:
     image: traefik:v3.1
     command:
       # --- Provider correcto para Docker Swarm ---
-      - "--providers.swarm=true"
-      - "--providers.swarm.endpoint=unix:///var/run/docker.sock"
-      - "--providers.swarm.watch=true"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.exposedByDefault=false"
 
       # --- Entrypoints HTTP / HTTPS ---
       - "--entrypoints.web.address=:80"
@@ -23,6 +21,9 @@ services:
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
       - "--certificatesresolvers.le.acme.httpChallenge=true"
       - "--certificatesresolvers.le.acme.httpChallenge.entryPoint=web"
+
+      # Opcional: ver dashboard
+      - "--api.dashboard=true"
 
     ports:
       - "80:80"
@@ -39,45 +40,3 @@ services:
       placement:
         constraints:
           - node.role == manager
-
-
-  backend:
-    image: ansible:5000/tokenpass_backend:latest
-    networks:
-      - tokenpass_net
-
-    deploy:
-      placement:
-        constraints:
-          - node.hostname == docker1.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
-
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.backend.rule=Host(`api.tokenpass.store`)"
-        - "traefik.http.routers.backend.entrypoints=websecure"
-        - "traefik.http.routers.backend.tls.certresolver=le"
-        - "traefik.http.services.backend.loadbalancer.server.port=4000"
-
-
-  frontend:
-    image: ansible:5000/tokenpass_frontend:latest
-    networks:
-      - tokenpass_net
-
-    deploy:
-      placement:
-        constraints:
-          - node.hostname == docker2.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
-
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.frontend.rule=Host(`tokenpass.store`)"
-        - "traefik.http.routers.frontend.entrypoints=websecure"
-        - "traefik.http.routers.frontend.tls.certresolver=le"
-        - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-
-
-networks:
-  tokenpass_net:
-    driver: overlay
-    attachable: true
