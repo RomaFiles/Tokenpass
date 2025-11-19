@@ -5,7 +5,10 @@ services:
   backend:
     image: ansible:5000/tokenpass_backend:latest
     ports:
-      - "4000:4000"
+      - target: 4000
+        published: 4000
+        protocol: tcp
+        mode: host
     deploy:
       placement:
         constraints:
@@ -16,7 +19,10 @@ services:
   frontend:
     image: ansible:5000/tokenpass_frontend:latest
     ports:
-      - "3000:3000"
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: host
     deploy:
       placement:
         constraints:
