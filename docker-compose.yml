@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
 
   traefik:
@@ -22,12 +24,14 @@ services:
       - "--certificatesresolvers.le.acme.httpChallenge=true"
       - "--certificatesresolvers.le.acme.httpChallenge.entryPoint=web"
 
-      # Opcional: ver dashboard
+      # Dashboard opcional (http://tu-ip:8080)
       - "--api.dashboard=true"
+      - "--entrypoints.traefik.address=:8080"
 
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"
 
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -40,3 +44,49 @@ services:
       placement:
         constraints:
           - node.role == manager
+
+
+
+  backend:
+    image: ansible:5000/tokenpass_backend:latest
+
+    networks:
+      - tokenpass_net
+
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == docker1.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
+
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.backend.rule=Host(`api.tokenpass.store`)"
+        - "traefik.http.routers.backend.entrypoints=websecure"
+        - "traefik.http.routers.backend.tls.certresolver=le"
+        - "traefik.http.services.backend.loadbalancer.server.port=4000"
+
+
+
+  frontend:
+    image: ansible:5000/tokenpass_frontend:latest
+
+    networks:
+      - tokenpass_net
+
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == docker2.us-central1-c.c.project-aaa5bfcd-8332-4e85-bd0.internal
+
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.frontend.rule=Host(`tokenpass.store`)"
+        - "traefik.http.routers.frontend.entrypoints=websecure"
+        - "traefik.http.routers.frontend.tls.certresolver=le"
+        - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
+
+networks:
+  tokenpass_net:
+    driver: overlay
+    attachable: true
