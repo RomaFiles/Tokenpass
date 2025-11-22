@@ -1,0 +1,182 @@
+import React, { useState } from 'react';
+import { Section } from '../pages/ForoBocaEvents/JuanGabriel';
+
+interface SeatSelectorProps {
+    section: Section;
+    onBack: () => void;
+    onSeatsChange: (seats: any[]) => void;
+}
+
+const SeatSelector: React.FC<SeatSelectorProps> = ({ section, onBack, onSeatsChange }) => {
+    const [subSection, setSubSection] = useState<'DD' | 'FF' | null>(null);
+    const [quantity, setQuantity] = useState(1);
+    const [showSeats, setShowSeats] = useState(false);
+    const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+
+    // Mock seat data generation
+    const generateSeats = () => {
+        const rows = 5;
+        const cols = 10;
+        const seats = [];
+        for (let r = 1; r <= rows; r++) {
+            for (let c = 1; c <= cols; c++) {
+                seats.push({
+                    id: `${r}-${c}`,
+                    row: r,
+                    number: c,
+                    status: Math.random() > 0.8 ? 'occupied' : 'available'
+                });
+            }
+        }
+        return seats;
+    };
+
+    const [seats] = useState(generateSeats());
+
+    const handleSearch = () => {
+        setShowSeats(true);
+    };
+
+    const toggleSeat = (seatId: string) => {
+        if (selectedSeats.includes(seatId)) {
+            const newSelection = selectedSeats.filter(id => id !== seatId);
+            setSelectedSeats(newSelection);
+            onSeatsChange(newSelection.map(id => {
+                const s = seats.find(x => x.id === id);
+                return { ...s, section, subSection };
+            }));
+        } else {
+            if (selectedSeats.length < quantity) {
+                const newSelection = [...selectedSeats, seatId];
+                setSelectedSeats(newSelection);
+                onSeatsChange(newSelection.map(id => {
+                    const s = seats.find(x => x.id === id);
+                    return { ...s, section, subSection };
+                }));
+            }
+        }
+    };
+
+    return (
+        <div style={{ padding: '1rem' }}>
+            <button onClick={onBack} style={{ marginBottom: '1rem', border: 'none', background: 'none', cursor: 'pointer', color: '#666' }}>
+                ← Seleccionar otra sección
+            </button>
+
+            <h2 style={{ marginBottom: '1.5rem' }}>{section.replace('_', ' ')}</h2>
+
+            {!showSeats ? (
+                <div style={{ maxWidth: '400px' }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Sub-sección</label>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button
+                                onClick={() => setSubSection('FF')}
+                                style={{
+                                    flex: 1,
+                                    padding: '1rem',
+                                    border: subSection === 'FF' ? '2px solid #6200ea' : '1px solid #ccc',
+                                    borderRadius: '8px',
+                                    background: subSection === 'FF' ? '#f3e5f5' : 'white',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Lado FF (Izquierda)
+                            </button>
+                            <button
+                                onClick={() => setSubSection('DD')}
+                                style={{
+                                    flex: 1,
+                                    padding: '1rem',
+                                    border: subSection === 'DD' ? '2px solid #6200ea' : '1px solid #ccc',
+                                    borderRadius: '8px',
+                                    background: subSection === 'DD' ? '#f3e5f5' : 'white',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Lado DD (Derecha)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Cantidad de boletos</label>
+                        <select
+                            value={quantity}
+                            onChange={(e) => setQuantity(Number(e.target.value))}
+                            style={{ width: '100%', padding: '0.8rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                        >
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                                <option key={n} value={n}>{n}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={handleSearch}
+                        disabled={!subSection}
+                        style={{
+                            width: '100%',
+                            padding: '1rem',
+                            background: subSection ? '#6200ea' : '#ccc',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: subSection ? 'pointer' : 'not-allowed',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        Buscar boletos
+                    </button>
+                </div>
+            ) : (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3>Selecciona tus asientos ({selectedSeats.length}/{quantity})</h3>
+                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: '#e0e0e0' }}></div> Ocupado</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: '#1976D2' }}></div> Disponible</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><div style={{ width: 12, height: 12, borderRadius: '50%', background: '#4CAF50' }}></div> Seleccionado</div>
+                        </div>
+                    </div>
+
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(10, 1fr)',
+                        gap: '0.5rem',
+                        maxWidth: '500px',
+                        margin: '0 auto',
+                        background: 'white',
+                        padding: '2rem',
+                        borderRadius: '8px'
+                    }}>
+                        {seats.map(seat => (
+                            <button
+                                key={seat.id}
+                                disabled={seat.status === 'occupied'}
+                                onClick={() => toggleSeat(seat.id)}
+                                style={{
+                                    width: '30px',
+                                    height: '30px',
+                                    borderRadius: '50%',
+                                    border: 'none',
+                                    background: selectedSeats.includes(seat.id)
+                                        ? '#4CAF50'
+                                        : seat.status === 'occupied' ? '#e0e0e0' : '#1976D2',
+                                    cursor: seat.status === 'occupied' ? 'not-allowed' : 'pointer',
+                                    color: 'white',
+                                    fontSize: '0.7rem'
+                                }}
+                                title={`Fila ${seat.row} Asiento ${seat.number}`}
+                            >
+                                {selectedSeats.includes(seat.id) && '✓'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default SeatSelector;

@@ -46,7 +46,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/JuanGabriel"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/JuanGabrielHomenaje.png')" }}
           >
@@ -127,7 +127,7 @@ const ForoBoca: NextPage = () => {
           </Link>
         </div>
 
-        
+
       </div>
     </div>
   );
