@@ -106,7 +106,7 @@ const TicketSummary: React.FC<TicketSummaryProps> = ({ selectedSeats }) => {
         // Sepolia Chainlink ETH/USD
         const SEPOLIA_FEED = "0x694AA1769357215DE4FAC081bf1f309aDC325306";
         // 1 MXN = ~0.05 USD (50000 with 6 decimals)
-        const RATE = 50000n;
+        const RATE = BigInt(50000);
 
         setRates({
             address: CONTRACT_ADDRESS as `0x${string}`,
