@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
+import { useReadContracts } from 'wagmi';
 import { Section } from '../pages/ForoBocaEvents/JuanGabriel';
+import { CONTRACT_ADDRESS, TICKETPASS_ABI, SectionCode, SubSectionCode, encodeSeatId, mapSectionToCode } from '../lib/contracts';
+
+const EVENT_ID = 1;
 
 interface SeatSelectorProps {
     section: Section;
@@ -13,7 +17,7 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ section, onBack, onSeatsCha
     const [showSeats, setShowSeats] = useState(false);
     const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
 
-    // Mock seat data generation
+    // Generate seats (rows/cols)
     const generateSeats = () => {
         const rows = 5;
         const cols = 10;
@@ -24,7 +28,6 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ section, onBack, onSeatsCha
                     id: `${r}-${c}`,
                     row: r,
                     number: c,
-                    status: Math.random() > 0.8 ? 'occupied' : 'available'
                 });
             }
         }
@@ -33,8 +36,25 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ section, onBack, onSeatsCha
 
     const [seats] = useState(generateSeats());
 
+    const sectionCode: SectionCode = mapSectionToCode(section);
+    const subCode: SubSectionCode = subSection === 'FF' ? SubSectionCode.FF : SubSectionCode.DD;
+
+    const seatIds = seats.map((s) => encodeSeatId(EVENT_ID, sectionCode, subCode, s.row, s.number));
+
+    const { data: soldResults } = useReadContracts({
+        contracts: seatIds.map((id) => ({
+            address: CONTRACT_ADDRESS as `0x${string}`,
+            abi: TICKETPASS_ABI,
+            functionName: 'soldSeats',
+            args: [id],
+        })),
+        query: { enabled: !!subSection && showSeats },
+    });
+
     const handleSearch = () => {
         setShowSeats(true);
+        setSelectedSeats([]);
+        onSeatsChange([]);
     };
 
     const toggleSeat = (seatId: string) => {
@@ -150,28 +170,33 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ section, onBack, onSeatsCha
                         padding: '2rem',
                         borderRadius: '8px'
                     }}>
-                        {seats.map(seat => (
-                            <button
-                                key={seat.id}
-                                disabled={seat.status === 'occupied'}
-                                onClick={() => toggleSeat(seat.id)}
-                                style={{
-                                    width: '30px',
-                                    height: '30px',
-                                    borderRadius: '50%',
-                                    border: 'none',
-                                    background: selectedSeats.includes(seat.id)
-                                        ? '#4CAF50'
-                                        : seat.status === 'occupied' ? '#e0e0e0' : '#1976D2',
-                                    cursor: seat.status === 'occupied' ? 'not-allowed' : 'pointer',
-                                    color: 'white',
-                                    fontSize: '0.7rem'
-                                }}
-                                title={`Fila ${seat.row} Asiento ${seat.number}`}
-                            >
-                                {selectedSeats.includes(seat.id) && '✓'}
-                            </button>
-                        ))}
+                        {seats.map((seat, index) => {
+                            const isSold = !!soldResults?.[index]?.result;
+                            return (
+                                <button
+                                    key={seat.id}
+                                    disabled={isSold}
+                                    onClick={() => toggleSeat(seat.id)}
+                                    style={{
+                                        width: '30px',
+                                        height: '30px',
+                                        borderRadius: '50%',
+                                        border: 'none',
+                                        background: isSold
+                                            ? '#e0e0e0'
+                                            : selectedSeats.includes(seat.id)
+                                                ? '#4CAF50'
+                                                : '#1976D2',
+                                        cursor: isSold ? 'not-allowed' : 'pointer',
+                                        color: 'white',
+                                        fontSize: '0.7rem'
+                                    }}
+                                    title={`Fila ${seat.row} Asiento ${seat.number}`}
+                                >
+                                    {selectedSeats.includes(seat.id) && '✓'}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
