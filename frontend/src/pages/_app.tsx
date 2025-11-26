@@ -9,6 +9,8 @@ import { RainbowKitProvider, ConnectButton } from '@rainbow-me/rainbowkit';
 import { config } from '../wagmi';
 import styles from '../styles/App.module.css';
 
+import Navigation from '../components/Navigation';
+
 const client = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -16,9 +18,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={client}>
         <RainbowKitProvider>
-          <div className={styles.connectButtonContainer}>
-            <ConnectButton />
-          </div>
+          <Navigation />
           <Component {...pageProps} />
         </RainbowKitProvider>
       </QueryClientProvider>

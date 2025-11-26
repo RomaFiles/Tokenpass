@@ -1,4 +1,17 @@
-export const CONTRACT_ADDRESS = "0x0B7c99D0e942c3762569286d9965cB03532da384";
+import { sepolia, mainnet, polygon, optimism, arbitrum, base } from "wagmi/chains";
+
+export const CONTRACT_ADDRESSES: Record<number, `0x${string}`> = {
+    [sepolia.id]: "0x0B7c99D0e942c3762569286d9965cB03532da384",
+    // Add other networks here when deployed
+    // [mainnet.id]: "0x...",
+};
+
+export const getContractAddress = (chainId: number): `0x${string}` | undefined => {
+    return CONTRACT_ADDRESSES[chainId];
+};
+
+export const CONTRACT_ADDRESS = CONTRACT_ADDRESSES[sepolia.id]; // Default/Fallback
+
 
 export const TICKETPASS_ABI = [
     {
@@ -919,6 +932,15 @@ export function encodeSeatId(
         | (BigInt(sub & 0xff) << BigInt(32))
         | (BigInt(row & 0xffff) << BigInt(16))
         | BigInt(number_ & 0xffff);
+}
+
+export function decodeSeatId(seatId: bigint) {
+    const eventId = Number((seatId >> 48n) & 0xffffn);
+    const section = Number((seatId >> 40n) & 0xffn);
+    const subSection = Number((seatId >> 32n) & 0xffn);
+    const row = Number((seatId >> 16n) & 0xffffn);
+    const number = Number(seatId & 0xffffn);
+    return { eventId, section, subSection, row, number };
 }
 
 // Mapea los strings de la UI al código on-chain

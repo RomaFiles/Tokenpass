@@ -9,9 +9,25 @@ import TicketSummary from "../../components/TicketSummary";
 
 export type Section = "CORO" | "CORO_LATERAL" | "LUNETA_ALTA" | "LUNETA_BAJA" | "PALCO" | "PLATEA_ALTA" | "PLATEA_BAJA";
 
+// Define available events/dates
+const EVENTS = [
+    { id: 1, date: "Sábado 15 de Diciembre, 20:00 hrs" },
+    { id: 2, date: "Domingo 16 de Diciembre, 18:00 hrs" },
+];
+
 const JuanGabriel: NextPage = () => {
+    const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
     const [selectedSection, setSelectedSection] = useState<Section | null>(null);
     const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
+
+    const handleBack = () => {
+        if (selectedSection) {
+            setSelectedSection(null);
+            setSelectedSeats([]);
+        } else {
+            setSelectedEventId(null);
+        }
+    };
 
     return (
         <div className={styles.container}>
@@ -29,15 +45,48 @@ const JuanGabriel: NextPage = () => {
 
             <div className={styles.content} style={{ display: 'flex', gap: '2rem', padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
                 <div style={{ flex: 2 }}>
-                    <Link href="/ForoBoca" className={styles.backLink} style={{ marginBottom: '1rem', display: 'block' }}>
-                        ← Volver a eventos
-                    </Link>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <Link href="/ForoBoca" className={styles.backLink}>
+                            ← Volver a eventos
+                        </Link>
+                        {(selectedEventId || selectedSection) && (
+                            <button onClick={handleBack} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline' }}>
+                                ← Volver atrás
+                            </button>
+                        )}
+                    </div>
 
                     <div style={{ background: '#e0e7ef', padding: '2rem', borderRadius: '8px', minHeight: '600px', position: 'relative' }}>
-                        {!selectedSection ? (
+                        {!selectedEventId ? (
+                            <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                <h2 style={{ marginBottom: '2rem', color: '#333' }}>Selecciona una fecha</h2>
+                                <div style={{ display: 'grid', gap: '1rem', maxWidth: '400px', margin: '0 auto' }}>
+                                    {EVENTS.map(ev => (
+                                        <button
+                                            key={ev.id}
+                                            onClick={() => setSelectedEventId(ev.id)}
+                                            style={{
+                                                padding: '1.5rem',
+                                                fontSize: '1.2rem',
+                                                background: 'white',
+                                                border: '2px solid #0d76fc',
+                                                borderRadius: '8px',
+                                                color: '#0d76fc',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            {ev.date}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : !selectedSection ? (
                             <SeatMap onSelectSection={setSelectedSection} />
                         ) : (
                             <SeatSelector
+                                eventId={selectedEventId}
                                 section={selectedSection}
                                 onBack={() => setSelectedSection(null)}
                                 onSeatsChange={setSelectedSeats}
@@ -48,8 +97,16 @@ const JuanGabriel: NextPage = () => {
 
                 <div style={{ flex: 1, background: 'white', padding: '1.5rem', borderRadius: '8px', height: 'fit-content', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                     <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>
-                        {selectedSection ? `Sección: ${selectedSection.replace('_', ' ')}` : 'Seleccionar sector'}
+                        {selectedEventId
+                            ? EVENTS.find(e => e.id === selectedEventId)?.date
+                            : 'Selecciona fecha'}
                     </h2>
+
+                    {selectedEventId && (
+                        <h3 style={{ fontSize: '1rem', marginBottom: '1rem', color: '#666' }}>
+                            {selectedSection ? `Sección: ${selectedSection.replace('_', ' ')}` : 'Selecciona sector'}
+                        </h3>
+                    )}
 
                     {!selectedSection ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -60,7 +117,7 @@ const JuanGabriel: NextPage = () => {
                             <SectionPrice label="PALCO" price={398} />
                         </div>
                     ) : (
-                        <TicketSummary selectedSeats={selectedSeats} />
+                        <TicketSummary eventId={selectedEventId!} selectedSeats={selectedSeats} />
                     )}
                 </div>
             </div>

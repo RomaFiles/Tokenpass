@@ -3,15 +3,14 @@ import { useReadContracts } from 'wagmi';
 import { Section } from '../pages/ForoBocaEvents/JuanGabriel';
 import { CONTRACT_ADDRESS, TICKETPASS_ABI, SectionCode, SubSectionCode, encodeSeatId, mapSectionToCode } from '../lib/contracts';
 
-const EVENT_ID = 1;
-
 interface SeatSelectorProps {
+    eventId: number;
     section: Section;
     onBack: () => void;
     onSeatsChange: (seats: any[]) => void;
 }
 
-const SeatSelector: React.FC<SeatSelectorProps> = ({ section, onBack, onSeatsChange }) => {
+const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, onBack, onSeatsChange }) => {
     const [subSection, setSubSection] = useState<'DD' | 'FF' | null>(null);
     const [quantity, setQuantity] = useState(1);
     const [showSeats, setShowSeats] = useState(false);
@@ -39,7 +38,7 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ section, onBack, onSeatsCha
     const sectionCode: SectionCode = mapSectionToCode(section);
     const subCode: SubSectionCode = subSection === 'FF' ? SubSectionCode.FF : SubSectionCode.DD;
 
-    const seatIds = seats.map((s) => encodeSeatId(EVENT_ID, sectionCode, subCode, s.row, s.number));
+    const seatIds = seats.map((s) => encodeSeatId(eventId, sectionCode, subCode, s.row, s.number));
 
     const { data: soldResults } = useReadContracts({
         contracts: seatIds.map((id) => ({
