@@ -37,7 +37,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/DanielSosa"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/DanielSosa.png')" }}
           >
@@ -55,7 +55,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/BalletFolkloricoMexico"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/BalletFolkloricoMexico.png')" }}
           >
@@ -64,7 +64,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/ElCascanueces"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/ElCascanueces.png')" }}
           >
@@ -73,7 +73,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/Danzon"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/Danzon.png')" }}
           >
@@ -82,7 +82,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/ConciertoArcano"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/ConciertoArcano.png')" }}
           >
@@ -91,7 +91,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/ConciertoNavideno"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/ConciertoNavideño.png')" }}
           >
@@ -100,7 +100,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/EinaudiZimmer"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/Einaudi&Zimmer.png')" }}
           >
@@ -109,7 +109,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/Klaus"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/Klaus.png')" }}
           >
@@ -118,7 +118,7 @@ const ForoBoca: NextPage = () => {
           </Link>
 
           <Link
-            href="#"
+            href="ForoBocaEvents/LeQuattroStagioni"
             className={`${homeStyles.card} ${homeStyles.cardBg} ${homeStyles.cardLight}`}
             style={{ ["--card-bg" as any]: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%), url('/models/ForoBocaEvents/LeQuattroStagioni.png')" }}
           >

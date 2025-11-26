@@ -54,6 +54,16 @@ const StaffScanPage = () => {
             const EVENTS: Record<number, { name: string; venue: string; date: string }> = {
                 1: { name: "Juan Gabriel: Concierto Especial", venue: "Foro Boca", date: "Sábado 15 de Diciembre, 20:00 hrs" },
                 2: { name: "Juan Gabriel: Concierto Especial", venue: "Foro Boca", date: "Domingo 16 de Diciembre, 18:00 hrs" },
+                3: { name: "Memorias en aerosol", venue: "Foro Boca", date: "Jueves 20 de Diciembre, 19:00 hrs" },
+                4: { name: "Daniel Sosa", venue: "Foro Boca", date: "Viernes 21 de Diciembre, 21:00 hrs" },
+                5: { name: "Ballet Folklórico de México", venue: "Foro Boca", date: "Sábado 22 de Diciembre, 18:00 hrs" },
+                6: { name: "El Cascanueces", venue: "Foro Boca", date: "Domingo 23 de Diciembre, 17:00 hrs" },
+                7: { name: "Concierto de Danzón", venue: "Foro Boca", date: "Miércoles 26 de Diciembre, 20:00 hrs" },
+                8: { name: "Concierto Arcano", venue: "Foro Boca", date: "Jueves 27 de Diciembre, 20:30 hrs" },
+                9: { name: "Concierto Navideño", venue: "Foro Boca", date: "Viernes 28 de Diciembre, 19:00 hrs" },
+                10: { name: "Einaudi & Zimmer", venue: "Foro Boca", date: "Sábado 29 de Diciembre, 20:00 hrs" },
+                11: { name: "Klaus", venue: "Foro Boca", date: "Domingo 30 de Diciembre, 16:00 hrs" },
+                12: { name: "Le quattro Stagioni", venue: "Foro Boca", date: "Lunes 31 de Diciembre, 18:00 hrs" },
             };
 
             const eventInfo = EVENTS[eventId] || { name: "Evento Desconocido", venue: "Ubicación Desconocida", date: "Fecha Desconocida" };

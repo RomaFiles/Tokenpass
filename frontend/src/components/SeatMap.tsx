@@ -1,5 +1,5 @@
 import React from 'react';
-import { Section } from '../pages/ForoBocaEvents/JuanGabriel';
+import { Section } from './ForoBocaEventPage';
 
 interface SeatMapProps {
     onSelectSection: (section: Section) => void;

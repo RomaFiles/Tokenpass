@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useReadContracts } from 'wagmi';
-import { Section } from '../pages/ForoBocaEvents/JuanGabriel';
+import { Section } from './ForoBocaEventPage';
 import { CONTRACT_ADDRESS, TICKETPASS_ABI, SectionCode, SubSectionCode, encodeSeatId, mapSectionToCode } from '../lib/contracts';
 
 interface SeatSelectorProps {

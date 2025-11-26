@@ -47,15 +47,27 @@ const TicketCard: React.FC<TicketCardProps> = ({ tokenId, seatId, owner, onTrans
 
     // Mock Event Data (In a real app, this would come from a database or contract metadata)
     const EVENTS = {
-        1: { date: "Sábado 15 de Diciembre, 20:00 hrs" },
-        2: { date: "Domingo 16 de Diciembre, 18:00 hrs" },
+        1: { name: "Juan Gabriel: Concierto Especial", date: "Sábado 15 de Diciembre, 20:00 hrs", image: "/models/ForoBocaEvents/JuanGabrielHomenaje.png" },
+        2: { name: "Juan Gabriel: Concierto Especial", date: "Domingo 16 de Diciembre, 18:00 hrs", image: "/models/ForoBocaEvents/JuanGabrielHomenaje.png" },
+        3: { name: "Memorias en aerosol", date: "Jueves 20 de Diciembre, 19:00 hrs", image: "/models/ForoBocaEvents/MemoriasEnAerosol.png" },
+        4: { name: "Daniel Sosa", date: "Viernes 21 de Diciembre, 21:00 hrs", image: "/models/ForoBocaEvents/DanielSosa.png" },
+        5: { name: "Ballet Folklórico de México", date: "Sábado 22 de Diciembre, 18:00 hrs", image: "/models/ForoBocaEvents/BalletFolkloricoMexico.png" },
+        6: { name: "El Cascanueces", date: "Domingo 23 de Diciembre, 17:00 hrs", image: "/models/ForoBocaEvents/ElCascanueces.png" },
+        7: { name: "Concierto de Danzón", date: "Miércoles 26 de Diciembre, 20:00 hrs", image: "/models/ForoBocaEvents/Danzon.png" },
+        8: { name: "Concierto Arcano", date: "Jueves 27 de Diciembre, 20:30 hrs", image: "/models/ForoBocaEvents/ConciertoArcano.png" },
+        9: { name: "Concierto Navideño", date: "Viernes 28 de Diciembre, 19:00 hrs", image: "/models/ForoBocaEvents/ConciertoNavideño.png" },
+        10: { name: "Einaudi & Zimmer", date: "Sábado 29 de Diciembre, 20:00 hrs", image: "/models/ForoBocaEvents/Einaudi&Zimmer.png" },
+        11: { name: "Klaus", date: "Domingo 30 de Diciembre, 16:00 hrs", image: "/models/ForoBocaEvents/Klaus.png" },
+        12: { name: "Le quattro Stagioni", date: "Lunes 31 de Diciembre, 18:00 hrs", image: "/models/ForoBocaEvents/LeQuattroStagioni.png" },
     };
 
+    const eventInfo = EVENTS[eventId as keyof typeof EVENTS] || { name: "Evento Desconocido", date: "Fecha por confirmar", image: "/models/ForoBocaEvents/JuanGabrielHomenaje.png" };
+
     const eventDetails = {
-        name: "Juan Gabriel: Concierto Especial",
+        name: eventInfo.name,
         venue: "Foro Boca",
-        date: EVENTS[eventId as keyof typeof EVENTS]?.date || "Fecha por confirmar",
-        image: "/models/ForoBocaEvents/JuanGabrielHomenaje.png"
+        date: eventInfo.date,
+        image: eventInfo.image
     };
 
     return (

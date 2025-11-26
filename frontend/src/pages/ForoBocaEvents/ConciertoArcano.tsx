@@ -1,14 +1,14 @@
 import type { NextPage } from "next";
 import ForoBocaEventPage from "../../components/ForoBocaEventPage";
 
-const JuanGabriel: NextPage = () => {
+const ConciertoArcano: NextPage = () => {
     return (
         <ForoBocaEventPage
-            title="Juan Gabriel"
-            subtitle="Concierto Especial"
+            title="Concierto Arcano"
+            subtitle="Tour 2025"
+            backgroundImage="/models/ForoBocaEvents/ConciertoArcano.png"
             events={[
-                { id: 1, date: "Sábado 15 de Diciembre, 20:00 hrs" },
-                { id: 2, date: "Domingo 16 de Diciembre, 18:00 hrs" },
+                { id: 8, date: "Jueves 27 de Diciembre, 20:30 hrs" }
             ]}
             prices={[
                 { label: "CORO", price: 265 },
@@ -21,4 +21,4 @@ const JuanGabriel: NextPage = () => {
     );
 };
 
-export default JuanGabriel;
+export default ConciertoArcano;
