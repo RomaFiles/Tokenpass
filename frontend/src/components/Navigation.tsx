@@ -48,17 +48,30 @@ const Navigation: React.FC = () => {
             )}
 
             {isAdmin && (
-                <Link href="/admin" style={{
-                    color: '#ff9800',
-                    textDecoration: 'none',
-                    fontWeight: 'bold',
-                    background: 'rgba(0,0,0,0.5)',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '12px',
-                    backdropFilter: 'blur(10px)'
-                }}>
-                    Admin
-                </Link>
+                <>
+                    <Link href="/admin" style={{
+                        color: '#ff9800',
+                        textDecoration: 'none',
+                        fontWeight: 'bold',
+                        background: 'rgba(0,0,0,0.5)',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '12px',
+                        backdropFilter: 'blur(10px)'
+                    }}>
+                        Admin
+                    </Link>
+                    <Link href="/staff/scan" style={{
+                        color: '#ff9800',
+                        textDecoration: 'none',
+                        fontWeight: 'bold',
+                        background: 'rgba(0,0,0,0.5)',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '12px',
+                        backdropFilter: 'blur(10px)'
+                    }}>
+                        Staff
+                    </Link>
+                </>
             )}
 
             <ConnectButton />

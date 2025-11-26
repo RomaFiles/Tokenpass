@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { decodeSeatId, SectionCode, SubSectionCode } from '../../lib/contracts';
 import TicketQR from './TicketQR';
 import TransferModal from './TransferModal';
@@ -13,6 +13,25 @@ interface TicketCardProps {
 const TicketCard: React.FC<TicketCardProps> = ({ tokenId, seatId, owner, onTransferSuccess }) => {
     const [showQR, setShowQR] = useState(false);
     const [showTransfer, setShowTransfer] = useState(false);
+    const [isUsed, setIsUsed] = useState(false);
+
+    useEffect(() => {
+        // Check local storage for check-in status (Simulated backend)
+        const checkStatus = () => {
+            const stored = localStorage.getItem('checkedInTokens');
+            if (stored) {
+                const checkedInTokens = JSON.parse(stored);
+                if (checkedInTokens.includes(tokenId.toString())) {
+                    setIsUsed(true);
+                }
+            }
+        };
+
+        checkStatus();
+        // Listen for storage events to update across tabs
+        window.addEventListener('storage', checkStatus);
+        return () => window.removeEventListener('storage', checkStatus);
+    }, [tokenId]);
 
     const seat = decodeSeatId(seatId);
 
@@ -68,10 +87,19 @@ const TicketCard: React.FC<TicketCardProps> = ({ tokenId, seatId, owner, onTrans
                             <h3 style={{ margin: 0, color: '#0d76fc', fontSize: '1.2rem' }}>{eventDetails.name}</h3>
                             <p style={{ margin: '0.2rem 0', color: '#666', fontSize: '0.9rem' }}>{eventDetails.venue} • {eventDetails.date}</p>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
+                        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
                             <span style={{ background: '#f0f7ff', color: '#0d76fc', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
                                 #{tokenId.toString()}
                             </span>
+                            {isUsed ? (
+                                <span style={{ background: '#fff3e0', color: '#ef6c00', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', border: '1px solid #ffe0b2' }}>
+                                    Status: Usado
+                                </span>
+                            ) : (
+                                <span style={{ background: '#e8f5e9', color: '#2e7d32', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', border: '1px solid #c8e6c9' }}>
+                                    Status: Activo
+                                </span>
+                            )}
                         </div>
                     </div>
 
