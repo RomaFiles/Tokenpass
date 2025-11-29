@@ -29,15 +29,22 @@ interface ForoBocaEventPageProps {
 const ForoBocaEventPage: React.FC<ForoBocaEventPageProps> = ({ title, subtitle, events, prices }) => {
     const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
     const [selectedSection, setSelectedSection] = useState<Section | null>(null);
+    const [selectedSubSection, setSelectedSubSection] = useState<'FF' | 'DD' | null>(null);
     const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
 
     const handleBack = () => {
         if (selectedSection) {
             setSelectedSection(null);
+            setSelectedSubSection(null);
             setSelectedSeats([]);
         } else {
             setSelectedEventId(null);
         }
+    };
+
+    const handleSectionSelect = (section: Section, subSection?: 'FF' | 'DD') => {
+        setSelectedSection(section);
+        if (subSection) setSelectedSubSection(subSection);
     };
 
     return (
@@ -93,13 +100,14 @@ const ForoBocaEventPage: React.FC<ForoBocaEventPageProps> = ({ title, subtitle, 
                                     ))}
                                 </div>
                             </div>
-                        ) : !selectedSection ? (
-                            <SeatMap onSelectSection={setSelectedSection} />
+                        ) : !selectedSection || !selectedSubSection ? (
+                            <SeatMap onSelectSection={handleSectionSelect} />
                         ) : (
                             <SeatSelector
                                 eventId={selectedEventId}
                                 section={selectedSection}
-                                onBack={() => setSelectedSection(null)}
+                                initialSubSection={selectedSubSection}
+                                onBack={() => { setSelectedSection(null); setSelectedSubSection(null); }}
                                 onSeatsChange={setSelectedSeats}
                             />
                         )}

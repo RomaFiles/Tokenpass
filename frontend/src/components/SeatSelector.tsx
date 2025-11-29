@@ -6,39 +6,65 @@ import { CONTRACT_ADDRESS, TICKETPASS_ABI, SectionCode, SubSectionCode, encodeSe
 interface SeatSelectorProps {
     eventId: number;
     section: Section;
+    initialSubSection: 'FF' | 'DD'; // Must be provided now
     onBack: () => void;
     onSeatsChange: (seats: any[]) => void;
 }
 
-const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, onBack, onSeatsChange }) => {
-    const [subSection, setSubSection] = useState<'DD' | 'FF' | null>(null);
+const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, initialSubSection, onBack, onSeatsChange }) => {
+    // We lock the subsection to what was clicked on the map
+    const subSection = initialSubSection;
+
     const [quantity, setQuantity] = useState(1);
     const [showSeats, setShowSeats] = useState(false);
     const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
 
-    // Generate seats (rows/cols)
+    // Generate seats for Left and Right sides within the subsection
+    // Left Side: Seats 1-25
+    // Right Side: Seats 26-50
     const generateSeats = () => {
         const rows = 5;
-        const cols = 10;
-        const seats = [];
+        const cols = 5; // 5x5 = 25 seats per side
+
+        const leftSeats = [];
+        const rightSeats = [];
+
+        // Left Side (1-25)
         for (let r = 1; r <= rows; r++) {
             for (let c = 1; c <= cols; c++) {
-                seats.push({
-                    id: `${r}-${c}`,
+                const number = ((r - 1) * cols) + c;
+                leftSeats.push({
+                    id: `L-${r}-${c}`,
                     row: r,
-                    number: c,
+                    number: number,
+                    side: 'Izquierda'
                 });
             }
         }
-        return seats;
+
+        // Right Side (26-50) - Offset by 25 to keep them distinct
+        for (let r = 1; r <= rows; r++) {
+            for (let c = 1; c <= cols; c++) {
+                const number = 25 + ((r - 1) * cols) + c;
+                rightSeats.push({
+                    id: `R-${r}-${c}`,
+                    row: r,
+                    number: number,
+                    side: 'Derecha'
+                });
+            }
+        }
+
+        return { leftSeats, rightSeats };
     };
 
-    const [seats] = useState(generateSeats());
+    const { leftSeats, rightSeats } = React.useMemo(() => generateSeats(), []);
+    const allSeats = [...leftSeats, ...rightSeats];
 
     const sectionCode: SectionCode = mapSectionToCode(section);
     const subCode: SubSectionCode = subSection === 'FF' ? SubSectionCode.FF : SubSectionCode.DD;
 
-    const seatIds = seats.map((s) => encodeSeatId(eventId, sectionCode, subCode, s.row, s.number));
+    const seatIds = allSeats.map((s) => encodeSeatId(eventId, sectionCode, subCode, s.row, s.number));
 
     const { data: soldResults } = useReadContracts({
         contracts: seatIds.map((id) => ({
@@ -47,7 +73,7 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, onBack, o
             functionName: 'soldSeats',
             args: [id],
         })),
-        query: { enabled: !!subSection && showSeats },
+        query: { enabled: showSeats },
     });
 
     const handleSearch = () => {
@@ -61,7 +87,7 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, onBack, o
             const newSelection = selectedSeats.filter(id => id !== seatId);
             setSelectedSeats(newSelection);
             onSeatsChange(newSelection.map(id => {
-                const s = seats.find(x => x.id === id);
+                const s = allSeats.find(x => x.id === id);
                 return { ...s, section, subSection };
             }));
         } else {
@@ -69,12 +95,54 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, onBack, o
                 const newSelection = [...selectedSeats, seatId];
                 setSelectedSeats(newSelection);
                 onSeatsChange(newSelection.map(id => {
-                    const s = seats.find(x => x.id === id);
+                    const s = allSeats.find(x => x.id === id);
                     return { ...s, section, subSection };
                 }));
             }
         }
     };
+
+    const renderGrid = (seats: typeof leftSeats, title: string, offsetIndex: number) => (
+        <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', border: '1px solid #eee' }}>
+            <h4 style={{ textAlign: 'center', marginBottom: '1rem' }}>{title}</h4>
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(5, 1fr)',
+                gap: '0.5rem',
+            }}>
+                {seats.map((seat, i) => {
+                    // Adjust index for soldResults based on whether it's left (0-24) or right (25-49)
+                    const resultIndex = offsetIndex + i;
+                    const isSold = !!soldResults?.[resultIndex]?.result;
+
+                    return (
+                        <button
+                            key={seat.id}
+                            disabled={isSold}
+                            onClick={() => toggleSeat(seat.id)}
+                            style={{
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '4px',
+                                border: 'none',
+                                background: isSold
+                                    ? '#e0e0e0'
+                                    : selectedSeats.includes(seat.id)
+                                        ? '#4CAF50'
+                                        : '#1976D2',
+                                cursor: isSold ? 'not-allowed' : 'pointer',
+                                color: 'white',
+                                fontSize: '0.7rem'
+                            }}
+                            title={`Fila ${seat.row} Asiento ${seat.number}`}
+                        >
+                            {selectedSeats.includes(seat.id) ? '✓' : seat.number}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
 
     return (
         <div style={{ padding: '1rem' }}>
@@ -82,42 +150,10 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, onBack, o
                 ← Seleccionar otra sección
             </button>
 
-            <h2 style={{ marginBottom: '1.5rem' }}>{section.replace('_', ' ')}</h2>
+            <h2 style={{ marginBottom: '1.5rem' }}>{section.replace('_', ' ')} - Sección {subSection}</h2>
 
             {!showSeats ? (
                 <div style={{ maxWidth: '400px' }}>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Sub-sección</label>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button
-                                onClick={() => setSubSection('FF')}
-                                style={{
-                                    flex: 1,
-                                    padding: '1rem',
-                                    border: subSection === 'FF' ? '2px solid #6200ea' : '1px solid #ccc',
-                                    borderRadius: '8px',
-                                    background: subSection === 'FF' ? '#f3e5f5' : 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Lado FF (Izquierda)
-                            </button>
-                            <button
-                                onClick={() => setSubSection('DD')}
-                                style={{
-                                    flex: 1,
-                                    padding: '1rem',
-                                    border: subSection === 'DD' ? '2px solid #6200ea' : '1px solid #ccc',
-                                    borderRadius: '8px',
-                                    background: subSection === 'DD' ? '#f3e5f5' : 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Lado DD (Derecha)
-                            </button>
-                        </div>
-                    </div>
-
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Cantidad de boletos</label>
                         <select
@@ -133,19 +169,18 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, onBack, o
 
                     <button
                         onClick={handleSearch}
-                        disabled={!subSection}
                         style={{
                             width: '100%',
                             padding: '1rem',
-                            background: subSection ? '#6200ea' : '#ccc',
+                            background: '#6200ea',
                             color: 'white',
                             border: 'none',
                             borderRadius: '8px',
-                            cursor: subSection ? 'pointer' : 'not-allowed',
+                            cursor: 'pointer',
                             fontWeight: 'bold'
                         }}
                     >
-                        Buscar boletos
+                        Ver Asientos
                     </button>
                 </div>
             ) : (
@@ -159,43 +194,9 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, onBack, o
                         </div>
                     </div>
 
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(10, 1fr)',
-                        gap: '0.5rem',
-                        maxWidth: '500px',
-                        margin: '0 auto',
-                        background: 'white',
-                        padding: '2rem',
-                        borderRadius: '8px'
-                    }}>
-                        {seats.map((seat, index) => {
-                            const isSold = !!soldResults?.[index]?.result;
-                            return (
-                                <button
-                                    key={seat.id}
-                                    disabled={isSold}
-                                    onClick={() => toggleSeat(seat.id)}
-                                    style={{
-                                        width: '30px',
-                                        height: '30px',
-                                        borderRadius: '50%',
-                                        border: 'none',
-                                        background: isSold
-                                            ? '#e0e0e0'
-                                            : selectedSeats.includes(seat.id)
-                                                ? '#4CAF50'
-                                                : '#1976D2',
-                                        cursor: isSold ? 'not-allowed' : 'pointer',
-                                        color: 'white',
-                                        fontSize: '0.7rem'
-                                    }}
-                                    title={`Fila ${seat.row} Asiento ${seat.number}`}
-                                >
-                                    {selectedSeats.includes(seat.id) && '✓'}
-                                </button>
-                            );
-                        })}
+                    <div style={{ display: 'flex', gap: '2rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        {renderGrid(leftSeats, "Izquierda", 0)}
+                        {renderGrid(rightSeats, "Derecha", leftSeats.length)}
                     </div>
                 </div>
             )}

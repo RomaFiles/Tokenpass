@@ -2,7 +2,7 @@ import React from 'react';
 import { Section } from './ForoBocaEventPage';
 
 interface SeatMapProps {
-    onSelectSection: (section: Section) => void;
+    onSelectSection: (section: Section, subSection?: 'FF' | 'DD') => void;
 }
 
 const SeatMap: React.FC<SeatMapProps> = ({ onSelectSection }) => {
@@ -16,36 +16,36 @@ const SeatMap: React.FC<SeatMapProps> = ({ onSelectSection }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr 1fr', gap: '1rem', width: '100%', maxWidth: '800px' }}>
                 {/* Left Side */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <SectionBox label="CORO LAT FF" color="#C4C4C4" onClick={() => onSelectSection('CORO_LATERAL')} vertical />
-                    <SectionBox label="PALCO LAT FF" color="#D81B60" onClick={() => onSelectSection('PALCO')} vertical />
-                    <SectionBox label="PLATEA BAJA LAT FF" color="#F48FB1" onClick={() => onSelectSection('PLATEA_BAJA')} vertical />
+                    <SectionBox label="CORO LAT FF" color="#C4C4C4" onClick={() => onSelectSection('CORO_LATERAL', 'FF')} vertical />
+                    <SectionBox label="PALCO LAT FF" color="#D81B60" onClick={() => onSelectSection('PALCO', 'FF')} vertical />
+                    <SectionBox label="PLATEA BAJA LAT FF" color="#F48FB1" onClick={() => onSelectSection('PLATEA_BAJA', 'FF')} vertical />
                 </div>
 
                 {/* Center */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <SectionBox label="LUNETA BAJA FF" color="#1976D2" onClick={() => onSelectSection('LUNETA_BAJA')} />
-                        <SectionBox label="LUNETA BAJA DD" color="#1976D2" onClick={() => onSelectSection('LUNETA_BAJA')} />
+                        <SectionBox label="LUNETA BAJA FF" color="#1976D2" onClick={() => onSelectSection('LUNETA_BAJA', 'FF')} />
+                        <SectionBox label="LUNETA BAJA DD" color="#1976D2" onClick={() => onSelectSection('LUNETA_BAJA', 'DD')} />
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <SectionBox label="LUNETA ALTA FF" color="#388E3C" onClick={() => onSelectSection('LUNETA_ALTA')} />
-                        <SectionBox label="LUNETA ALTA DD" color="#388E3C" onClick={() => onSelectSection('LUNETA_ALTA')} />
+                        <SectionBox label="LUNETA ALTA FF" color="#388E3C" onClick={() => onSelectSection('LUNETA_ALTA', 'FF')} />
+                        <SectionBox label="LUNETA ALTA DD" color="#388E3C" onClick={() => onSelectSection('LUNETA_ALTA', 'DD')} />
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <SectionBox label="PLATEA BAJA FF" color="#FB8C00" onClick={() => onSelectSection('PLATEA_BAJA')} />
-                        <SectionBox label="PLATEA BAJA DD" color="#FB8C00" onClick={() => onSelectSection('PLATEA_BAJA')} />
+                        <SectionBox label="PLATEA BAJA FF" color="#FB8C00" onClick={() => onSelectSection('PLATEA_BAJA', 'FF')} />
+                        <SectionBox label="PLATEA BAJA DD" color="#FB8C00" onClick={() => onSelectSection('PLATEA_BAJA', 'DD')} />
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <SectionBox label="PLATEA ALTA FF" color="#7B1FA2" onClick={() => onSelectSection('PLATEA_ALTA')} />
-                        <SectionBox label="PLATEA ALTA DD" color="#7B1FA2" onClick={() => onSelectSection('PLATEA_ALTA')} />
+                        <SectionBox label="PLATEA ALTA FF" color="#7B1FA2" onClick={() => onSelectSection('PLATEA_ALTA', 'FF')} />
+                        <SectionBox label="PLATEA ALTA DD" color="#7B1FA2" onClick={() => onSelectSection('PLATEA_ALTA', 'DD')} />
                     </div>
                 </div>
 
                 {/* Right Side */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <SectionBox label="CORO LAT DD" color="#C4C4C4" onClick={() => onSelectSection('CORO_LATERAL')} vertical />
-                    <SectionBox label="PALCO LAT DD" color="#D81B60" onClick={() => onSelectSection('PALCO')} vertical />
-                    <SectionBox label="PLATEA BAJA LAT DD" color="#F48FB1" onClick={() => onSelectSection('PLATEA_BAJA')} vertical />
+                    <SectionBox label="CORO LAT DD" color="#C4C4C4" onClick={() => onSelectSection('CORO_LATERAL', 'DD')} vertical />
+                    <SectionBox label="PALCO LAT DD" color="#D81B60" onClick={() => onSelectSection('PALCO', 'DD')} vertical />
+                    <SectionBox label="PLATEA BAJA LAT DD" color="#F48FB1" onClick={() => onSelectSection('PLATEA_BAJA', 'DD')} vertical />
                 </div>
             </div>
         </div>

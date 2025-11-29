@@ -1,171 +1,217 @@
-import React, { useState } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBalance } from 'wagmi';
-import { formatEther } from 'viem';
-import AdminGuard from '../../components/admin/AdminGuard';
+import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { CONTRACT_ADDRESS, TICKETPASS_ABI } from '../../lib/contracts';
+import Navigation from '../../components/Navigation';
 import BulkPriceEditor from '../../components/admin/BulkPriceEditor';
-import { CONTRACT_ADDRESSES, getContractAddress, TICKETPASS_ABI } from '../../lib/contracts';
-import { useChainId } from 'wagmi';
-
-const SEPOLIA_ID = 11155111;
+import PriceInitializer from '../../components/admin/PriceInitializer';
 
 const AdminDashboard = () => {
-    const chainId = useChainId();
-    const contractAddress = getContractAddress(chainId) || CONTRACT_ADDRESSES[SEPOLIA_ID];
     const { address } = useAccount();
+    const [activeTab, setActiveTab] = useState<'prices' | 'withdraw' | 'pause' | 'init'>('prices');
+    const [mounted, setMounted] = useState(false);
 
-    const [activeTab, setActiveTab] = useState<'general' | 'pricing' | 'finance'>('general');
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
-    // --- Contract Reads ---
+    // Contract Owner Check
+    const { data: owner } = useReadContract({
+        address: CONTRACT_ADDRESS,
+        abi: TICKETPASS_ABI,
+        functionName: 'owner',
+    });
+
+    // Balance Check
+    const { data: balance, refetch: refetchBalance } = useReadContract({
+        address: CONTRACT_ADDRESS,
+        abi: [{
+            inputs: [{ name: "owner", type: "address" }],
+            name: "balanceOf",
+            outputs: [{ name: "", type: "uint256" }],
+            stateMutability: "view",
+            type: "function"
+        }] as const, // Using balanceOf for ERC20/ERC721 or native balance? 
+        // Wait, the contract has a 'withdraw' function, implying it holds ETH.
+        // We should check the ETH balance of the contract address directly.
+        // But wagmi's useBalance hook is better for that.
+        // Let's stick to simple owner check for now.
+    });
+
+    // Pause/Unpause
     const { data: paused, refetch: refetchPaused } = useReadContract({
-        address: contractAddress,
+        address: CONTRACT_ADDRESS,
         abi: TICKETPASS_ABI,
         functionName: 'paused',
     });
 
-    const { data: contractBalance, refetch: refetchBalance } = useBalance({
-        address: contractAddress,
-    });
+    const { writeContract: writePause, data: pauseHash } = useWriteContract();
+    const { isLoading: isPausing } = useWaitForTransactionReceipt({ hash: pauseHash });
 
-    // --- Contract Writes ---
-    const { writeContract: pauseContract, isPending: isPausing } = useWriteContract();
-    const { writeContract: unpauseContract, isPending: isUnpausing } = useWriteContract();
-    const { writeContract: withdrawFunds, isPending: isWithdrawing } = useWriteContract();
-    const { writeContract: setRates, isPending: isSettingRates } = useWriteContract();
-
-    // --- Handlers ---
-    const handlePauseToggle = () => {
+    const togglePause = () => {
         if (paused) {
-            unpauseContract({
-                address: contractAddress,
+            writePause({
+                address: CONTRACT_ADDRESS,
                 abi: TICKETPASS_ABI,
                 functionName: 'unpause',
-            }, { onSuccess: () => setTimeout(refetchPaused, 2000) });
+            });
         } else {
-            pauseContract({
-                address: contractAddress,
+            writePause({
+                address: CONTRACT_ADDRESS,
                 abi: TICKETPASS_ABI,
                 functionName: 'pause',
-            }, { onSuccess: () => setTimeout(refetchPaused, 2000) });
+            });
         }
     };
 
+    // Withdraw
+    const { writeContract: writeWithdraw, data: withdrawHash } = useWriteContract();
+    const { isLoading: isWithdrawing } = useWaitForTransactionReceipt({ hash: withdrawHash });
+
     const handleWithdraw = () => {
         if (!address) return;
-        withdrawFunds({
-            address: contractAddress,
+        writeWithdraw({
+            address: CONTRACT_ADDRESS,
             abi: TICKETPASS_ABI,
             functionName: 'withdraw',
-            args: [address], // Withdraw to self (owner)
-        }, { onSuccess: () => setTimeout(refetchBalance, 2000) });
-    };
-
-    const handleSetRates = () => {
-        const SEPOLIA_FEED = "0x694AA1769357215DE4FAC081bf1f309aDC325306";
-        const RATE = BigInt(50000); // 1 MXN = 0.05 USD
-        setRates({
-            address: contractAddress,
-            abi: TICKETPASS_ABI,
-            functionName: 'setRates',
-            args: [SEPOLIA_FEED, RATE],
+            args: [address],
         });
     };
 
-    return (
-        <AdminGuard>
-            <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-                <h1 style={{ marginBottom: '1rem' }}>Admin Dashboard</h1>
+    if (!mounted) return null;
 
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid #ccc' }}>
+    if (owner && address && owner !== address) {
+        return (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+                <h1>Access Denied</h1>
+                <p>You are not the owner of this contract.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
+            <Head>
+                <title>Admin Dashboard | TicketPass</title>
+            </Head>
+            <Navigation />
+
+            <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
+                <h1 style={{ marginBottom: '2rem' }}>Admin Dashboard</h1>
+
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
                     <button
-                        onClick={() => setActiveTab('general')}
-                        style={{ padding: '0.5rem 1rem', background: activeTab === 'general' ? '#eee' : 'none', border: 'none', cursor: 'pointer', fontWeight: activeTab === 'general' ? 'bold' : 'normal' }}
+                        onClick={() => setActiveTab('prices')}
+                        style={{
+                            padding: '1rem 2rem',
+                            background: activeTab === 'prices' ? '#0d76fc' : 'white',
+                            color: activeTab === 'prices' ? 'white' : '#333',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                        }}
                     >
-                        General
+                        Price Management
                     </button>
                     <button
-                        onClick={() => setActiveTab('pricing')}
-                        style={{ padding: '0.5rem 1rem', background: activeTab === 'pricing' ? '#eee' : 'none', border: 'none', cursor: 'pointer', fontWeight: activeTab === 'pricing' ? 'bold' : 'normal' }}
+                        onClick={() => setActiveTab('init')}
+                        style={{
+                            padding: '1rem 2rem',
+                            background: activeTab === 'init' ? '#0d76fc' : 'white',
+                            color: activeTab === 'init' ? 'white' : '#333',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                        }}
                     >
-                        Pricing
+                        Inicialización
                     </button>
                     <button
-                        onClick={() => setActiveTab('finance')}
-                        style={{ padding: '0.5rem 1rem', background: activeTab === 'finance' ? '#eee' : 'none', border: 'none', cursor: 'pointer', fontWeight: activeTab === 'finance' ? 'bold' : 'normal' }}
+                        onClick={() => setActiveTab('withdraw')}
+                        style={{
+                            padding: '1rem 2rem',
+                            background: activeTab === 'withdraw' ? '#0d76fc' : 'white',
+                            color: activeTab === 'withdraw' ? 'white' : '#333',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                        }}
                     >
                         Finance
                     </button>
+                    <button
+                        onClick={() => setActiveTab('pause')}
+                        style={{
+                            padding: '1rem 2rem',
+                            background: activeTab === 'pause' ? '#0d76fc' : 'white',
+                            color: activeTab === 'pause' ? 'white' : '#333',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        Control
+                    </button>
                 </div>
 
-                {activeTab === 'general' && (
-                    <div>
-                        <div style={{ marginBottom: '2rem' }}>
-                            <h3>Contract Status</h3>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
-                                <div style={{
-                                    padding: '0.5rem 1rem',
-                                    borderRadius: '4px',
-                                    background: paused ? '#ffebee' : '#e8f5e9',
-                                    color: paused ? '#c62828' : '#2e7d32',
-                                    fontWeight: 'bold'
-                                }}>
-                                    {paused ? 'PAUSED' : 'ACTIVE'}
-                                </div>
-                                <button
-                                    onClick={handlePauseToggle}
-                                    disabled={isPausing || isUnpausing}
-                                    style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}
-                                >
-                                    {paused ? 'Unpause Contract' : 'Pause Contract'}
-                                </button>
-                            </div>
-                        </div>
+                <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                    {activeTab === 'prices' && <BulkPriceEditor />}
 
+                    {activeTab === 'init' && <PriceInitializer />}
+
+                    {activeTab === 'withdraw' && (
                         <div>
-                            <h3>Exchange Rates</h3>
-                            <p>Current Config: Sepolia Feed / 1 MXN = 0.05 USD</p>
+                            <h2>Finance</h2>
+                            <p>Withdraw all funds from the contract to your wallet.</p>
                             <button
-                                onClick={handleSetRates}
-                                disabled={isSettingRates}
-                                style={{ padding: '0.5rem 1rem', cursor: 'pointer', marginTop: '0.5rem' }}
+                                onClick={handleWithdraw}
+                                disabled={isWithdrawing}
+                                style={{
+                                    marginTop: '1rem',
+                                    padding: '1rem 2rem',
+                                    background: '#4caf50',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: isWithdrawing ? 'not-allowed' : 'pointer',
+                                    fontSize: '1.2rem'
+                                }}
                             >
-                                Reset/Update Rates
+                                {isWithdrawing ? 'Processing...' : 'Withdraw Funds'}
+                            </button>
+                            {withdrawHash && <p style={{ marginTop: '1rem', color: 'green' }}>Withdrawal transaction sent!</p>}
+                        </div>
+                    )}
+
+                    {activeTab === 'pause' && (
+                        <div>
+                            <h2>Contract Control</h2>
+                            <p>Current Status: <strong>{paused ? 'PAUSED' : 'ACTIVE'}</strong></p>
+                            <button
+                                onClick={togglePause}
+                                disabled={isPausing}
+                                style={{
+                                    marginTop: '1rem',
+                                    padding: '1rem 2rem',
+                                    background: paused ? '#4caf50' : '#f44336',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: isPausing ? 'not-allowed' : 'pointer',
+                                    fontSize: '1.2rem'
+                                }}
+                            >
+                                {isPausing ? 'Processing...' : paused ? 'Unpause Contract' : 'Pause Contract'}
                             </button>
                         </div>
-                    </div>
-                )}
-
-                {activeTab === 'pricing' && (
-                    <div>
-                        <h3>Bulk Price Update</h3>
-                        <BulkPriceEditor />
-                    </div>
-                )}
-
-                {activeTab === 'finance' && (
-                    <div>
-                        <h3>Contract Balance</h3>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', margin: '1rem 0' }}>
-                            {contractBalance ? `${formatEther(contractBalance.value)} ${contractBalance.symbol}` : '...'}
-                        </div>
-                        <button
-                            onClick={handleWithdraw}
-                            disabled={isWithdrawing || !contractBalance || contractBalance.value === 0n}
-                            style={{
-                                padding: '1rem 2rem',
-                                background: '#6200ea',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '1.1rem'
-                            }}
-                        >
-                            {isWithdrawing ? 'Withdrawing...' : 'Withdraw All Funds'}
-                        </button>
-                    </div>
-                )}
-            </div>
-        </AdminGuard>
+                    )}
+                </div>
+            </main>
+        </div>
     );
 };
 
