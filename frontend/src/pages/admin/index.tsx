@@ -4,11 +4,12 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { CONTRACT_ADDRESS, TICKETPASS_ABI } from '../../lib/contracts';
 import Navigation from '../../components/Navigation';
 import BulkPriceEditor from '../../components/admin/BulkPriceEditor';
-import PriceInitializer from '../../components/admin/PriceInitializer';
+import FinanceDashboard from '../../components/admin/FinanceDashboard';
+
 
 const AdminDashboard = () => {
     const { address } = useAccount();
-    const [activeTab, setActiveTab] = useState<'prices' | 'withdraw' | 'pause' | 'init'>('prices');
+    const [activeTab, setActiveTab] = useState<'prices' | 'withdraw' | 'pause'>('prices');
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -114,20 +115,7 @@ const AdminDashboard = () => {
                     >
                         Price Management
                     </button>
-                    <button
-                        onClick={() => setActiveTab('init')}
-                        style={{
-                            padding: '1rem 2rem',
-                            background: activeTab === 'init' ? '#0d76fc' : 'white',
-                            color: activeTab === 'init' ? 'white' : '#333',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold'
-                        }}
-                    >
-                        Inicialización
-                    </button>
+
                     <button
                         onClick={() => setActiveTab('withdraw')}
                         style={{
@@ -161,31 +149,9 @@ const AdminDashboard = () => {
                 <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
                     {activeTab === 'prices' && <BulkPriceEditor />}
 
-                    {activeTab === 'init' && <PriceInitializer />}
 
-                    {activeTab === 'withdraw' && (
-                        <div>
-                            <h2>Finance</h2>
-                            <p>Withdraw all funds from the contract to your wallet.</p>
-                            <button
-                                onClick={handleWithdraw}
-                                disabled={isWithdrawing}
-                                style={{
-                                    marginTop: '1rem',
-                                    padding: '1rem 2rem',
-                                    background: '#4caf50',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: isWithdrawing ? 'not-allowed' : 'pointer',
-                                    fontSize: '1.2rem'
-                                }}
-                            >
-                                {isWithdrawing ? 'Processing...' : 'Withdraw Funds'}
-                            </button>
-                            {withdrawHash && <p style={{ marginTop: '1rem', color: 'green' }}>Withdrawal transaction sent!</p>}
-                        </div>
-                    )}
+
+                    {activeTab === 'withdraw' && <FinanceDashboard />}
 
                     {activeTab === 'pause' && (
                         <div>
