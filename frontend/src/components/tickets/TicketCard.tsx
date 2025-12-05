@@ -3,6 +3,8 @@ import { decodeSeatId, SectionCode, SubSectionCode, getRowLetter, CONTRACT_ADDRE
 import { useChainId } from 'wagmi';
 import TicketQR from './TicketQR';
 import TransferModal from './TransferModal';
+import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 
 interface TicketCardProps {
     tokenId: bigint;
@@ -71,6 +73,105 @@ const TicketCard: React.FC<TicketCardProps> = ({ tokenId, seatId, owner, onTrans
         venue: "Foro Boca",
         date: eventInfo.date,
         image: eventInfo.image
+    };
+
+    const generatePDF = async () => {
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: [100, 200] // Vertical mobile-friendly ticket size
+        });
+
+        // Colors
+        const blueColor = '#0d76fc';
+        const darkColor = '#1a1a1a';
+
+        // Header Background
+        doc.setFillColor(blueColor);
+        doc.rect(0, 0, 100, 40, 'F');
+
+        // Header Text
+        doc.setTextColor('#ffffff');
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text("TOKENPASS", 50, 15, { align: 'center' });
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text("Boleto Digital Oficial", 50, 25, { align: 'center' });
+
+        // Event Details
+        doc.setTextColor(darkColor);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        const splitTitle = doc.splitTextToSize(eventDetails.name, 80);
+        doc.text(splitTitle, 50, 50, { align: 'center' });
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(eventDetails.venue, 50, 62, { align: 'center' });
+        doc.text(eventDetails.date, 50, 68, { align: 'center' });
+
+        // Seat Info Box
+        doc.setDrawColor('#e0e0e0');
+        doc.setFillColor('#f9f9f9');
+        doc.roundedRect(10, 75, 80, 55, 3, 3, 'FD');
+
+        // Row 1: Section & Row
+        doc.setFontSize(9);
+        doc.setTextColor('#666666');
+        doc.text("SECCIÓN", 20, 85);
+        doc.text("FILA", 60, 85);
+
+        doc.setFontSize(12);
+        doc.setTextColor(darkColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text(sectionName.replace(/_/g, ' '), 20, 93);
+        doc.text(getRowLetter(seat.row), 60, 93);
+
+        // Row 2: Seat
+        doc.setFontSize(9);
+        doc.setTextColor('#666666');
+        doc.setFont('helvetica', 'normal');
+        doc.text("ASIENTO", 20, 105);
+
+        doc.setFontSize(12);
+        doc.setTextColor(darkColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text(seat.number.toString(), 20, 113);
+
+        // Row 3: ID (Full width below)
+        doc.setFontSize(9);
+        doc.setTextColor('#666666');
+        doc.setFont('helvetica', 'normal');
+        doc.text("ID DEL TICKET", 20, 122);
+
+        doc.setFontSize(10);
+        doc.setTextColor(darkColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`#${tokenId.toString()}`, 20, 128);
+
+        // QR Code
+        try {
+            const qrData = JSON.stringify({
+                tokenId: tokenId.toString(),
+                seatId: seatId.toString(),
+                owner: owner,
+                timestamp: Date.now()
+            });
+            const qrDataUrl = await QRCode.toDataURL(qrData, { width: 200, margin: 1 });
+            doc.addImage(qrDataUrl, 'PNG', 25, 135, 50, 50);
+        } catch (err) {
+            console.error("QR Generation Error", err);
+        }
+
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor('#999999');
+        doc.setFont('helvetica', 'normal');
+        doc.text("Presenta este código en la entrada.", 50, 195, { align: 'center' });
+
+        doc.save(`ticket-${tokenId.toString()}.pdf`);
     };
 
     return (
@@ -162,6 +263,13 @@ const TicketCard: React.FC<TicketCardProps> = ({ tokenId, seatId, owner, onTrans
                         Ver en Etherscan
                     </a>
                 </div>
+
+                <button
+                    onClick={generatePDF}
+                    style={{ marginTop: '1rem', width: '100%', padding: '0.8rem', background: '#6200ea', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                    <span style={{ fontSize: '1.2rem' }}>⬇️</span> Descargar Ticket PDF
+                </button>
 
                 {showQR && (
                     <div style={{ marginTop: '1rem', textAlign: 'center', padding: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #eee' }}>
