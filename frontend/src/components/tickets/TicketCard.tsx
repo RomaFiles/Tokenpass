@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { decodeSeatId, SectionCode, SubSectionCode } from '../../lib/contracts';
+import { decodeSeatId, SectionCode, SubSectionCode, getRowLetter, CONTRACT_ADDRESSES, getContractAddress } from '../../lib/contracts';
+import { useChainId } from 'wagmi';
 import TicketQR from './TicketQR';
 import TransferModal from './TransferModal';
 
@@ -14,6 +15,8 @@ const TicketCard: React.FC<TicketCardProps> = ({ tokenId, seatId, owner, onTrans
     const [showQR, setShowQR] = useState(false);
     const [showTransfer, setShowTransfer] = useState(false);
     const [isUsed, setIsUsed] = useState(false);
+    const chainId = useChainId();
+    const contractAddress = getContractAddress(chainId) || CONTRACT_ADDRESSES[11155111];
 
     useEffect(() => {
         // Check local storage for check-in status (Simulated backend)
@@ -127,7 +130,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ tokenId, seatId, owner, onTrans
                             </div>
                             <div>
                                 <p style={{ fontSize: '0.75rem', color: '#888', margin: 0, textTransform: 'uppercase' }}>Fila</p>
-                                <p style={{ fontWeight: 'bold', margin: 0, color: '#333' }}>{seat.row}</p>
+                                <p style={{ fontWeight: 'bold', margin: 0, color: '#333' }}>{getRowLetter(seat.row)}</p>
                             </div>
                             <div>
                                 <p style={{ fontSize: '0.75rem', color: '#888', margin: 0, textTransform: 'uppercase' }}>Asiento</p>
@@ -150,6 +153,14 @@ const TicketCard: React.FC<TicketCardProps> = ({ tokenId, seatId, owner, onTrans
                     >
                         Transferir
                     </button>
+                    <a
+                        href={`https://sepolia.etherscan.io/token/${contractAddress}?a=${tokenId.toString()}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ flex: 1, padding: '0.6rem', background: '#343a40', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', textDecoration: 'none', textAlign: 'center', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                        Ver en Etherscan
+                    </a>
                 </div>
 
                 {showQR && (

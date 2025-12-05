@@ -1,10 +1,25 @@
 import React, { useMemo } from 'react';
-import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContract, useWaitForTransactionReceipt, useReadContracts, useBalance } from 'wagmi';
+import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBalance, useReadContracts } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { formatEther } from 'viem';
-import { CONTRACT_ADDRESSES, getContractAddress, TICKETPASS_ABI, SectionCode, SubSectionCode, encodeSeatId, mapSectionToCode } from '../lib/contracts';
+import { formatEther, parseEther } from 'viem';
+import { CONTRACT_ADDRESSES, getContractAddress, TICKETPASS_ABI, SectionCode, SubSectionCode, encodeSeatId, mapSectionToCode, getRowNumber } from '../lib/contracts';
+import { EVENT_PRICES } from '../data/eventPrices';
 
 const SEPOLIA_ID = 11155111;
+const CHAINLINK_FEED_ADDRESS = '0x694AA1769357215DE4FAC081bf1f309aDC325306';
+const CHAINLINK_ABI = [{
+    inputs: [],
+    name: "latestRoundData",
+    outputs: [
+        { name: "roundId", type: "uint80" },
+        { name: "answer", type: "int256" },
+        { name: "startedAt", type: "uint256" },
+        { name: "updatedAt", type: "uint256" },
+        { name: "answeredInRound", type: "uint80" }
+    ],
+    stateMutability: "view",
+    type: "function"
+}] as const;
 
 interface TicketSummaryProps {
     eventId: number;
@@ -21,85 +36,102 @@ const TicketSummary: React.FC<TicketSummaryProps> = ({ eventId, selectedSeats })
 
     const contractAddress = getContractAddress(chainId) || CONTRACT_ADDRESSES[SEPOLIA_ID];
 
-    // --- 1. Fetch Prices for All Sections (Representative Seat) ---
-    const sectionsToQuery = [
-        { label: 'LUNETA_ALTA', code: SectionCode.LUNETA_ALTA },
-        { label: 'LUNETA_BAJA', code: SectionCode.LUNETA_BAJA },
-        { label: 'PLATEA_ALTA', code: SectionCode.PLATEA_ALTA },
-        { label: 'PLATEA_BAJA', code: SectionCode.PLATEA_BAJA },
-        { label: 'PALCO', code: SectionCode.PALCO },
-        { label: 'CORO', code: SectionCode.CORO },
-        { label: 'CORO_LATERAL', code: SectionCode.CORO_LATERAL },
-    ];
+    // --- 1. Get Prices from Local Config (Source of Truth for UI) ---
+    const eventPriceConfig = EVENT_PRICES.find(e => e.eventId === eventId);
 
-    // Create a dummy seat ID for each section to quote its price
-    const sectionSeatIds = sectionsToQuery.map(s =>
-        encodeSeatId(eventId, s.code, SubSectionCode.DD, 1, 1)
-    );
+    // --- 1b. Fetch On-Chain Prices for Selected Seats ---
+    // Get unique sections from selected seats to minimize calls
+    const uniqueSections = useMemo(() => {
+        const sections = new Set(selectedSeats.map(s => s.section));
+        return Array.from(sections);
+    }, [selectedSeats]);
 
-    const { data: sectionPricesWei } = useReadContracts({
-        contracts: sectionSeatIds.map(id => ({
+    const { data: onChainPrices } = useReadContracts({
+        contracts: uniqueSections.map(section => ({
             address: contractAddress,
             abi: TICKETPASS_ABI,
-            functionName: 'quoteSeatPriceWei',
-            args: [id],
+            functionName: 'sectionPricesMXN',
+            args: [eventId, mapSectionToCode(section), SubSectionCode.DD], // Assuming DD/FF have same price
         })),
     });
 
-    // Map section label to price in Wei
-    const priceMapWei = useMemo(() => {
-        const map: Record<string, bigint> = {};
-        if (sectionPricesWei) {
-            sectionPricesWei.forEach((result, idx) => {
-                if (result.status === 'success') {
-                    map[sectionsToQuery[idx].label] = result.result as bigint;
+    const getSectionPriceMXN = (sectionLabel: string): number => {
+        // 1. Try to find on-chain price
+        const sectionIndex = uniqueSections.indexOf(sectionLabel);
+        if (sectionIndex >= 0 && onChainPrices && onChainPrices[sectionIndex]) {
+            const result = onChainPrices[sectionIndex];
+            if (result.status === 'success' && result.result) {
+                const priceCents = Number(result.result);
+                if (priceCents > 0) {
+                    return priceCents / 100;
                 }
-            });
+            }
         }
-        return map;
-    }, [sectionPricesWei]);
 
-    // Helper to get price for a section (Wei)
-    const getSectionPriceWei = (sectionLabel: string): bigint | undefined => {
-        // Handle potential label mismatches or partial matches if needed
-        const key = sectionsToQuery.find(s => sectionLabel.includes(s.label))?.label;
-        return key ? priceMapWei[key] : undefined;
+        // 2. Fallback to local config
+        if (!eventPriceConfig) return 0;
+        const key = Object.keys(eventPriceConfig.prices).find(k => sectionLabel.includes(k)) as keyof typeof SectionCode | undefined;
+        return key ? (eventPriceConfig.prices[key] || 0) : 0;
     };
 
-    // --- 2. Calculate Totals ---
-    const seatIds = selectedSeats.map((s) => {
-        const sectionCode: SectionCode = mapSectionToCode(s.section);
-        const sub: SubSectionCode = s.subSection === 'FF' ? SubSectionCode.FF : SubSectionCode.DD;
-        return encodeSeatId(eventId, sectionCode, sub, Number(s.row), Number(s.number));
-    });
-
-    // Fetch exact total from contract (best source of truth)
-    const { data: totalWei, isLoading: isLoadingPrice, error: priceError } = useReadContract({
+    // --- 2. Fetch Exchange Rates for Estimation ---
+    // A. USD per MXN from Contract
+    const { data: usdPerMxnE6 } = useReadContract({
         address: contractAddress,
         abi: TICKETPASS_ABI,
-        functionName: 'quoteTotalWei',
-        args: [eventId, seatIds],
-        query: { enabled: seatIds.length > 0 },
+        functionName: 'usdPerMxnE6',
     });
 
-    // Fallback total if contract call fails or empty (sum of individual section prices)
-    const estimatedTotalWei = selectedSeats.reduce((acc, seat) => {
-        return acc + (getSectionPriceWei(seat.section) || 0n);
-    }, 0n);
+    // B. ETH/USD from Chainlink
+    const { data: roundData } = useReadContract({
+        address: CHAINLINK_FEED_ADDRESS,
+        abi: CHAINLINK_ABI,
+        functionName: 'latestRoundData',
+        chainId: SEPOLIA_ID, // Always query Sepolia feed
+    });
 
-    const finalTotalWei = totalWei ?? estimatedTotalWei;
+    const ethUsdPrice = roundData ? Number(roundData[1]) : 0; // 8 decimals
 
-    // --- 3. Purchase Logic ---
+    // --- 3. Calculate Totals ---
+    const totalMXN = selectedSeats.reduce((acc, seat) => acc + getSectionPriceMXN(seat.section), 0);
+
+    // Calculate ETH required based on contract formula:
+    // Wei = (mxnCents * usdPerMxnE6 * 1e18) / ethUsd
+    const estimatedWei = useMemo(() => {
+        if (!totalMXN || !usdPerMxnE6 || !ethUsdPrice) return 0n;
+        const mxnCents = BigInt(Math.floor(totalMXN * 100));
+        const usdPerMxn = BigInt(usdPerMxnE6); // 6 decimals
+        const ethUsd = BigInt(ethUsdPrice); // 8 decimals
+
+        // Formula: (mxnCents * usdPerMxn * 1e18) / ethUsd
+        // Note: Contract divides by ethUsd (which is 8 decimals), effectively multiplying by 1e8/Price
+        // Let's match contract logic exactly:
+        // return (mxnCents * usdPerMxnE6 * 1e18) / uint256(ethUsd);
+        return (mxnCents * usdPerMxn * 1000000000000000000n) / ethUsd;
+    }, [totalMXN, usdPerMxnE6, ethUsdPrice]);
+
+    // Add 2% buffer for fluctuations (refunded by contract)
+    const finalWeiWithBuffer = (estimatedWei * 102n) / 100n;
+
+    // --- 4. Purchase Logic ---
     const handlePayment = async () => {
-        if (!isConnected || seatIds.length === 0 || !finalTotalWei) return;
+        if (!isConnected) return;
 
         if (chainId !== SEPOLIA_ID) {
             switchChain({ chainId: SEPOLIA_ID });
             return;
         }
 
-        if (balance && balance.value < finalTotalWei) {
-            alert("Fondos insuficientes para realizar la compra.");
+        if (selectedSeats.length === 0) return;
+
+        const seatIds = selectedSeats.map((s) => {
+            const sectionCode: SectionCode = mapSectionToCode(s.section);
+            const sub: SubSectionCode = s.subSection === 'FF' ? SubSectionCode.FF : SubSectionCode.DD;
+            return encodeSeatId(eventId, sectionCode, sub, getRowNumber(s.row), Number(s.number));
+        });
+
+        if (balance && balance.value < finalWeiWithBuffer) {
+            alert("Fondos insuficientes (incluyendo buffer de seguridad).");
             return;
         }
 
@@ -108,104 +140,71 @@ const TicketSummary: React.FC<TicketSummaryProps> = ({ eventId, selectedSeats })
             abi: TICKETPASS_ABI,
             functionName: 'purchase',
             args: [eventId, seatIds],
-            value: finalTotalWei,
+            value: finalWeiWithBuffer,
         }, {
             onError: (err) => console.error("Write contract error:", err),
         });
     };
 
-    // --- 4. Admin Helpers (kept for now) ---
-    const { writeContract: setPrice } = useWriteContract();
-    const { writeContract: setRates } = useWriteContract();
-    const { data: usdPerMxn } = useReadContract({
+    // --- Admin Helper: Check and Initialize Prices ---
+    const firstSeat = selectedSeats[0];
+
+    // Check if price is set on contract for the first selected seat
+    const { data: onChainPriceMXN } = useReadContract({
         address: contractAddress,
         abi: TICKETPASS_ABI,
-        functionName: 'usdPerMxnE6',
+        functionName: 'sectionPricesMXN',
+        args: firstSeat ? [eventId, mapSectionToCode(firstSeat.section), firstSeat.subSection === 'FF' ? SubSectionCode.FF : SubSectionCode.DD] : undefined,
+        query: { enabled: !!firstSeat }
     });
 
-    const handleFixRates = () => {
-        const SEPOLIA_FEED = "0x694AA1769357215DE4FAC081bf1f309aDC325306";
-        const RATE = BigInt(50000); // 1 MXN = 0.05 USD
-        setRates({
-            address: contractAddress,
-            abi: TICKETPASS_ABI,
-            functionName: 'setRates',
-            args: [SEPOLIA_FEED, RATE],
-        });
+    const isPriceSetOnChain = onChainPriceMXN !== undefined && onChainPriceMXN > 0n;
+
+    const { writeContract: setPrice } = useWriteContract();
+    const handleSyncPrice = () => {
+        if (!firstSeat) return;
+        const sectionCode = mapSectionToCode(firstSeat.section);
+        const sub = firstSeat.subSection === 'FF' ? SubSectionCode.FF : SubSectionCode.DD;
+        const price = getSectionPriceMXN(firstSeat.section);
+        if (price > 0) {
+            setPrice({
+                address: contractAddress,
+                abi: TICKETPASS_ABI,
+                functionName: 'setSectionPriceMXN',
+                args: [eventId, sectionCode, sub, BigInt(price * 100)],
+            });
+        }
     };
-
-    const handleSetPrice = () => {
-        if (selectedSeats.length === 0) return;
-        const seat = selectedSeats[0];
-        const sectionCode = mapSectionToCode(seat.section);
-        const sub = seat.subSection === 'FF' ? SubSectionCode.FF : SubSectionCode.DD;
-        // Default prices if not set
-        let priceMxn = 265;
-        if (seat.section.includes('LUNETA_ALTA')) priceMxn = 309;
-        if (seat.section.includes('LUNETA_BAJA')) priceMxn = 398;
-
-        const priceCents = BigInt(priceMxn * 100);
-
-        setPrice({
-            address: contractAddress,
-            abi: TICKETPASS_ABI,
-            functionName: 'setSectionPriceMXN',
-            args: [eventId, sectionCode, sub, priceCents],
-        });
-    };
-
-    const isPriceMissingError = priceError?.message?.includes("Seat price not set") ||
-        priceError?.message?.includes("Seat price not set (MXN)");
 
     return (
         <div>
-            {/* Admin Controls */}
-            {(usdPerMxn === 0n) && (
-                <div style={{ marginBottom: '1rem' }}>
-                    <button onClick={handleFixRates} style={{ background: '#ff5722', color: 'white', border: 'none', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                        Admin: Inicializar Tasas
-                    </button>
-                </div>
-            )}
-
             {selectedSeats.length === 0 ? (
                 <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
                     <p>Selecciona tus asientos en el mapa.</p>
-                    <div style={{ marginTop: '1rem', textAlign: 'left', fontSize: '0.9rem' }}>
-                        <strong>Precios estimados (ETH):</strong>
-                        <ul style={{ listStyle: 'none', padding: 0 }}>
-                            {sectionsToQuery.map(s => {
-                                const p = priceMapWei[s.label];
-                                // If p is undefined, it's loading. If p is 0, it might be unset or free.
-                                // But typically unset prices revert or return 0 depending on implementation.
-                                // Here we assume if it's undefined it's loading.
-                                return (
-                                    <li key={s.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0' }}>
-                                        <span>{s.label.replace('_', ' ')}</span>
-                                        <span>
-                                            {p !== undefined
-                                                ? (p > 0n ? `${formatEther(p).substring(0, 6)} ETH` : 'No disponible')
-                                                : 'Consultando...'}
-                                        </span>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
                 </div>
             ) : (
                 <div>
                     <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem' }}>
                         {selectedSeats.map((seat, idx) => {
-                            const p = getSectionPriceWei(seat.section);
+                            const price = getSectionPriceMXN(seat.section);
+                            // Calculate individual ETH estimate
+                            let seatWei = 0n;
+                            if (price && usdPerMxnE6 && ethUsdPrice) {
+                                const cents = BigInt(Math.floor(price * 100));
+                                seatWei = (cents * BigInt(usdPerMxnE6) * 1000000000000000000n) / BigInt(ethUsdPrice);
+                            }
+
                             return (
                                 <div key={idx} style={{ padding: '1rem', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
                                     <div>
                                         <div style={{ fontWeight: 'bold' }}>{seat.section.replace('_', ' ')} {seat.subSection}</div>
                                         <div style={{ fontSize: '0.9rem', color: '#666' }}>Fila {seat.row} - Asiento {seat.number}</div>
                                     </div>
-                                    <div style={{ fontWeight: 'bold' }}>
-                                        {p ? `${formatEther(p).substring(0, 6)} ETH` : '...'}
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontWeight: 'bold' }}>${price.toLocaleString()} MXN</div>
+                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                            ≈ {seatWei > 0n ? formatEther(seatWei).substring(0, 6) : '...'} ETH
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -214,23 +213,38 @@ const TicketSummary: React.FC<TicketSummaryProps> = ({ eventId, selectedSeats })
 
                     <div style={{ borderTop: '2px solid #eee', paddingTop: '1rem', marginTop: '1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
-                            <span>Total Estimado</span>
-                            <span>{finalTotalWei ? `${formatEther(finalTotalWei).substring(0, 8)} ETH` : '...'}</span>
+                            <span>Total</span>
+                            <span>${totalMXN.toLocaleString()} MXN</span>
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: '#666', textAlign: 'right', marginBottom: '1rem' }}>
-                            (Sujeto a tipo de cambio al momento de la compra)
+                        <div style={{ textAlign: 'right', marginBottom: '1rem', color: '#666' }}>
+                            ≈ {estimatedWei > 0n ? formatEther(estimatedWei).substring(0, 6) : '...'} ETH
                         </div>
 
-                        {priceError && (
-                            <div style={{ color: 'red', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                                Error al cotizar: {priceError.message}
-                                {isPriceMissingError && (
-                                    <div style={{ marginTop: '0.5rem' }}>
-                                        <button onClick={handleSetPrice} style={{ background: '#ff9800', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                                            Admin: Configurar Precio
-                                        </button>
-                                    </div>
-                                )}
+                        {/* Admin Warning: Price not set */}
+                        {!isPriceSetOnChain && isConnected && (
+                            <div style={{ background: '#fff3e0', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #ffb74d' }}>
+                                <div style={{ color: '#e65100', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                                    ⚠️ Precio no configurado en contrato
+                                </div>
+                                <div style={{ fontSize: '0.9rem', color: '#e65100', marginBottom: '0.5rem' }}>
+                                    Para evitar errores y fees altos, primero debes registrar el precio en la blockchain.
+                                </div>
+                                <a
+                                    href="/admin"
+                                    style={{
+                                        display: 'block',
+                                        textAlign: 'center',
+                                        background: '#ff9800',
+                                        color: 'white',
+                                        textDecoration: 'none',
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '4px',
+                                        fontWeight: 'bold',
+                                        width: '100%'
+                                    }}
+                                >
+                                    Ir al Dashboard de Admin
+                                </a>
                             </div>
                         )}
 
@@ -252,18 +266,18 @@ const TicketSummary: React.FC<TicketSummaryProps> = ({ eventId, selectedSeats })
                                 style={{
                                     width: '100%',
                                     padding: '1rem',
-                                    background: isPending || isConfirming || isLoadingPrice || !finalTotalWei ? '#ccc' : '#6200ea',
+                                    background: isPending || isConfirming || !estimatedWei || !isPriceSetOnChain ? '#ccc' : '#6200ea',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '8px',
                                     fontSize: '1.1rem',
                                     fontWeight: 'bold',
-                                    cursor: isPending || isConfirming || isLoadingPrice || !finalTotalWei ? 'not-allowed' : 'pointer'
+                                    cursor: isPending || isConfirming || !estimatedWei || !isPriceSetOnChain ? 'not-allowed' : 'pointer'
                                 }}
                                 onClick={handlePayment}
-                                disabled={isPending || isConfirming || isLoadingPrice || !finalTotalWei}
+                                disabled={isPending || isConfirming || !estimatedWei || !isPriceSetOnChain}
                             >
-                                {isLoadingPrice ? 'Cotizando...' : isPending ? 'Confirmando...' : 'Pagar con MetaMask'}
+                                {isPending ? 'Confirmando...' : 'Pagar con MetaMask'}
                             </button>
                         )}
                     </div>

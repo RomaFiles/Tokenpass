@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useReadContracts } from 'wagmi';
 import { Section } from './ForoBocaEventPage';
-import { CONTRACT_ADDRESS, TICKETPASS_ABI, SectionCode, SubSectionCode, encodeSeatId, mapSectionToCode } from '../lib/contracts';
+import { CONTRACT_ADDRESS, TICKETPASS_ABI, SectionCode, SubSectionCode, encodeSeatId, mapSectionToCode, getRowNumber } from '../lib/contracts';
 
 import { getSeatLayout, ZoneLayout } from '../data/seatLayouts';
 
@@ -39,13 +39,6 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ eventId, section, initialSu
         });
         return flat;
     }, [layout]);
-
-    // We need to map row names (A, B...) to numbers for the contract if the contract expects numeric rows.
-    // The contract `encodeSeatId` takes `row` as number.
-    // Let's assume A=1, B=2... for now.
-    const getRowNumber = (rowName: string) => {
-        return rowName.charCodeAt(0) - 64; // A=65 -> 1
-    };
 
     const sectionCode: SectionCode = mapSectionToCode(section);
     const subCode: SubSectionCode = subSection === 'FF' ? SubSectionCode.FF : SubSectionCode.DD;

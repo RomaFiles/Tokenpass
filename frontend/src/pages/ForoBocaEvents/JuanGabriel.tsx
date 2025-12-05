@@ -1,5 +1,6 @@
 import type { NextPage } from "next";
 import ForoBocaEventPage from "../../components/ForoBocaEventPage";
+import { getFormattedPrices } from "../../data/eventPrices";
 
 const JuanGabriel: NextPage = () => {
     return (
@@ -10,13 +11,7 @@ const JuanGabriel: NextPage = () => {
                 { id: 1, date: "Sábado 15 de Diciembre, 20:00 hrs" },
                 { id: 2, date: "Domingo 16 de Diciembre, 18:00 hrs" },
             ]}
-            prices={[
-                { label: "CORO", price: 265 },
-                { label: "CORO LATERAL", price: 265 },
-                { label: "LUNETA ALTA", price: 309 },
-                { label: "LUNETA BAJA", price: 398 },
-                { label: "PALCO", price: 398 },
-            ]}
+            prices={getFormattedPrices(1)}
         />
     );
 };

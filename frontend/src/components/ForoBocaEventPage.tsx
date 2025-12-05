@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import styles from "../styles/ForoBoca.module.css";
+import { useReadContracts, useChainId } from 'wagmi';
+import { CONTRACT_ADDRESSES, getContractAddress, TICKETPASS_ABI, SectionCode, SubSectionCode, mapSectionToCode } from '../lib/contracts';
 import SeatMap from "./SeatMap";
 import SeatSelector from "./SeatSelector";
 import TicketSummary from "./TicketSummary";
@@ -31,6 +33,34 @@ const ForoBocaEventPage: React.FC<ForoBocaEventPageProps> = ({ title, subtitle, 
     const [selectedSection, setSelectedSection] = useState<Section | null>(null);
     const [selectedSubSection, setSelectedSubSection] = useState<'FF' | 'DD' | null>(null);
     const [selectedSeats, setSelectedSeats] = useState<any[]>([]);
+
+    // --- On-Chain Price Fetching ---
+    const chainId = useChainId();
+    const contractAddress = getContractAddress(chainId) || CONTRACT_ADDRESSES[11155111];
+
+    // Use the first event ID as reference for prices (assuming all dates have same prices)
+    const referenceEventId = events.length > 0 ? events[0].id : null;
+
+    const { data: onChainPrices } = useReadContracts({
+        contracts: referenceEventId ? prices.map(p => ({
+            address: contractAddress,
+            abi: TICKETPASS_ABI,
+            functionName: 'sectionPricesMXN',
+            args: [referenceEventId, mapSectionToCode(p.label), SubSectionCode.DD],
+        })) : [],
+    });
+
+    // Merge default prices with on-chain prices
+    const displayPrices = prices.map((p, index) => {
+        if (onChainPrices && onChainPrices[index] && onChainPrices[index].status === 'success') {
+            const priceCents = Number(onChainPrices[index].result);
+            if (priceCents > 0) {
+                return { ...p, price: priceCents / 100 };
+            }
+        }
+        return p;
+    });
+    // -------------------------------
 
     const handleBack = () => {
         if (selectedSection) {
@@ -129,7 +159,7 @@ const ForoBocaEventPage: React.FC<ForoBocaEventPageProps> = ({ title, subtitle, 
 
                     {!selectedSection ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {prices.map((p, index) => (
+                            {displayPrices.map((p, index) => (
                                 <SectionPrice key={index} label={p.label} price={p.price} />
                             ))}
                         </div>

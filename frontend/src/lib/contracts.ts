@@ -1,17 +1,14 @@
-import { sepolia, mainnet, polygon, optimism, arbitrum, base } from "wagmi/chains";
+import { sepolia } from "wagmi/chains";
 
 export const CONTRACT_ADDRESSES: Record<number, `0x${string}`> = {
-    [sepolia.id]: "0x0B7c99D0e942c3762569286d9965cB03532da384",
-    // Add other networks here when deployed
-    // [mainnet.id]: "0x...",
+    11155111: '0xf7d2b7dbDF5DD7e3c908e021b33dC1753d04322B', // Sepolia
 };
 
-export const getContractAddress = (chainId: number): `0x${string}` | undefined => {
-    return CONTRACT_ADDRESSES[chainId];
+export const getContractAddress = (chainId: number | undefined) => {
+    return chainId ? CONTRACT_ADDRESSES[chainId] : undefined;
 };
 
 export const CONTRACT_ADDRESS = CONTRACT_ADDRESSES[sepolia.id]; // Default/Fallback
-
 
 export const TICKETPASS_ABI = [
     {
@@ -377,6 +374,34 @@ export const TICKETPASS_ABI = [
             }
         ],
         "name": "setEventBaseURI",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint16",
+                "name": "eventId",
+                "type": "uint16"
+            },
+            {
+                "internalType": "uint8[]",
+                "name": "sections",
+                "type": "uint8[]"
+            },
+            {
+                "internalType": "uint8[]",
+                "name": "subSections",
+                "type": "uint8[]"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "pricesMXN",
+                "type": "uint256[]"
+            }
+        ],
+        "name": "setEventPricesMXN",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -945,11 +970,35 @@ export function decodeSeatId(seatId: bigint) {
 
 // Mapea los strings de la UI al código on-chain
 export function mapSectionToCode(label: string): SectionCode {
-    if (label.includes("LUNETA_ALTA")) return SectionCode.LUNETA_ALTA;
-    if (label.includes("LUNETA_BAJA")) return SectionCode.LUNETA_BAJA;
-    if (label.includes("CORO_LATERAL")) return SectionCode.CORO_LATERAL;
+    if (label.includes("LUNETA_ALTA") || label.includes("LUNETA ALTA")) return SectionCode.LUNETA_ALTA;
+    if (label.includes("LUNETA_BAJA") || label.includes("LUNETA BAJA")) return SectionCode.LUNETA_BAJA;
+    if (label.includes("CORO_LATERAL") || label.includes("CORO LATERAL")) return SectionCode.CORO_LATERAL;
     if (label.includes("PALCO")) return SectionCode.PALCO;
-    if (label.includes("PLATEA_ALTA")) return SectionCode.PLATEA_ALTA;
-    if (label.includes("PLATEA_BAJA")) return SectionCode.PLATEA_BAJA;
+    if (label.includes("PLATEA_ALTA") || label.includes("PLATEA ALTA")) return SectionCode.PLATEA_ALTA;
+    if (label.includes("PLATEA_BAJA") || label.includes("PLATEA BAJA")) return SectionCode.PLATEA_BAJA;
     return SectionCode.CORO;
+}
+
+export async function getExchangeRate(): Promise<number | null> {
+    try {
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=mxn');
+        const data = await response.json();
+        // USDT is a good proxy for USD
+        return data.tether.mxn;
+    } catch (error) {
+        console.error("Error fetching exchange rate:", error);
+        return null;
+    }
+}
+
+export function getRowNumber(rowName: string): number {
+    if (!rowName) return 0;
+    // A=65 -> 1
+    return rowName.toUpperCase().charCodeAt(0) - 64;
+}
+
+export function getRowLetter(rowNumber: number): string {
+    if (rowNumber <= 0) return "?";
+    // 1 -> A=65
+    return String.fromCharCode(rowNumber + 64);
 }
